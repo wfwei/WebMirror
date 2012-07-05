@@ -177,6 +177,17 @@ public class HtmlContentHandler extends DefaultHandler {
 		return outgoingUrls;
 	}
 
+	/**
+	 * 添加一些特殊的url，比如js
+	 * 
+	 * @author WangFengwei
+	 * @param euap
+	 * @return
+	 */
+	public boolean addOutgoingUrls(ExtractedUrlAnchorPair euap) {
+		return outgoingUrls.add(euap);
+	}
+
 	public String getBaseUrl() {
 		return base;
 	}

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.tika.metadata.Metadata;
@@ -95,7 +96,27 @@ public class Parser extends Configurable {
 		HtmlParseData parseData = new HtmlParseData();
 		parseData.setText(contentHandler.getBodyText().trim());
 		parseData.setTitle(metadata.get(Metadata.TITLE));
-
+		
+		try {
+			if (page.getContentCharset() == null) {
+				parseData.setHtml(new String(page.getContentData()));
+			} else {
+				parseData.setHtml(new String(page.getContentData(), page.getContentCharset()));
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		/**
+		 * @author WangFengwei
+		 * extract js links
+		 */
+		for(ExtractedUrlAnchorPair jsLinkPair : (HashSet<ExtractedUrlAnchorPair>)ExtractJsLink.extractJsLinks(parseData.getHtml())){
+			contentHandler.addOutgoingUrls(jsLinkPair);
+		}
+		// end
+		
 		List<WebURL> outgoingUrls = new ArrayList<WebURL>();
 
 		String baseURL = contentHandler.getBaseUrl();
@@ -114,6 +135,7 @@ public class Parser extends Configurable {
 			if (href.startsWith("http://")) {
 				hrefWithoutProtocol = href.substring(7);
 			}
+			// 这里还没弄清楚是干啥的
 			if (!hrefWithoutProtocol.contains("javascript:") && !hrefWithoutProtocol.contains("@")) {
 				String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
 				if (url != null) {
@@ -130,17 +152,6 @@ public class Parser extends Configurable {
 		}
 
 		parseData.setOutgoingUrls(outgoingUrls);
-
-		try {
-			if (page.getContentCharset() == null) {
-				parseData.setHtml(new String(page.getContentData()));
-			} else {
-				parseData.setHtml(new String(page.getContentData(), page.getContentCharset()));
-			}
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return false;
-		}
 
 		page.setParseData(parseData);
 		return true;
