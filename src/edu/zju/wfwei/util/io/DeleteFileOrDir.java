@@ -1,10 +1,10 @@
-package mine.mycrawler.util.io;
+package edu.zju.wfwei.util.io;
 
 import java.io.File;
 import org.apache.log4j.Logger;
 
 /**
- * и╬ЁЩнд╪Ч╩Рд©б╪
+ * и╬О©╫О©╫О©╫д╪О©╫О©╫О©╫д©б╪
  * 
  * @author WangFengwei
  * @since 2012-6-20
@@ -14,17 +14,17 @@ public class DeleteFileOrDir {
 	private static Logger logger = Logger.getLogger(DeleteFileOrDir.class);
 
 	/**
-	 * и╬ЁЩнд╪Чё╛©иртйг╣╔╦Жнд╪Ч╩Рнд╪Ч╪п
+	 * и╬О©╫О©╫О©╫д╪О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫г╣О©╫О©╫О©╫О©╫д╪О©╫О©╫О©╫О©╫д╪О©╫О©╫О©╫
 	 * 
 	 * @param fileName
-	 *            ╢Щи╬ЁЩ╣днд╪ЧцШ
-	 * @return true нд╪Чи╬ЁЩЁи╧╕
-	 * @return false и╬ЁЩй╖╟э
+	 *            О©╫О©╫и╬О©╫О©╫О©╫О©╫д╪О©╫О©╫О©╫
+	 * @return true О©╫д╪О©╫и╬О©╫О©╫и╧О©╫
+	 * @return false и╬О©╫О©╫й╖О©╫О©╫
 	 */
 	public static boolean delete(String fileName) {
 		File file = new File(fileName);
 		if (!file.exists()) {
-			logger.warn("и╬ЁЩнд╪Чй╖╟эё╨" + fileName + "нд╪Ч╡╩╢Фтз");
+			logger.warn("и╬О©╫О©╫О©╫д╪О©╫й╖О©╫эёО©╫" + fileName + "О©╫д╪О©╫О©╫О©╫О©╫О©╫О©╫О©╫");
 			return false;
 		} else {
 			if (file.isFile()) {
@@ -36,54 +36,54 @@ public class DeleteFileOrDir {
 	}
 
 	/**
-	 * и╬ЁЩ╣╔╦Жнд╪Ч
+	 * и╬О©╫О©╫О©╫О©╫д╪О©╫
 	 * 
 	 * @param fileName
-	 *            ╠╩и╬ЁЩнд╪Ч╣днд╪ЧцШ
-	 * @return ╣╔╦Жнд╪Чи╬ЁЩЁи╧╕╥╣╩ьtrue,╥ЯтР╥╣╩ьfalse
+	 *            О©╫О©╫и╬О©╫О©╫О©╫д╪О©╫О©╫О©╫О©╫д╪О©╫О©╫О©╫
+	 * @return О©╫О©╫О©╫О©╫О©╫д╪О©╫и╬О©╫О©╫и╧О©╫О©╫О©╫О©╫О©╫true,О©╫О©╫О©╫Р╥╣╩О©╫false
 	 */
 	public static boolean deleteFile(String fileName) {
 		File file = new File(fileName);
 		if (file.isFile() && file.exists()) {
 			file.delete();
-			logger.info("и╬ЁЩ╣╔╦Жнд╪Ч" + fileName + "Ёи╧╕ё║");
+			logger.info("и╬О©╫О©╫О©╫О©╫д╪О©╫" + fileName + "О©╫и╧О©╫О©╫О©╫");
 			return true;
 		} else {
-			logger.warn("и╬ЁЩ╣╔╦Жнд╪Ч" + fileName + "й╖╟эё║");
+			logger.warn("и╬О©╫О©╫О©╫О©╫д╪О©╫" + fileName + "й╖О©╫эёО©╫");
 			return false;
 		}
 	}
 
 	/**
-	 * и╬ЁЩд©б╪ё╗нд╪Ч╪пё╘рт╪╟д©б╪об╣днд╪Ч
+	 * и╬О©╫О©╫д©б╪О©╫О©╫О©╫д╪О©╫О©╫пёО©╫О©╫т╪О©╫д©б╪О©╫б╣О©╫О©╫д╪О©╫
 	 * 
 	 * @param dir
-	 *            ╠╩и╬ЁЩд©б╪╣днд╪Чб╥╬╤
-	 * @return д©б╪и╬ЁЩЁи╧╕╥╣╩ьtrue,╥ЯтР╥╣╩ьfalse
+	 *            О©╫О©╫и╬О©╫О©╫д©б╪О©╫О©╫О©╫д╪О©╫б╥О©╫О©╫
+	 * @return д©б╪и╬О©╫О©╫и╧О©╫О©╫О©╫О©╫О©╫true,О©╫О©╫О©╫Р╥╣╩О©╫false
 	 */
 	public static boolean deleteDirectory(String dir) {
-		// хГ╧Шdir╡╩ртнд╪Ч╥ж╦Т╥Ш╫Ан╡ё╛вт╤╞лМ╪снд╪Ч╥ж╦Т╥Ш
+		// О©╫О©╫О©╫dirО©╫О©╫О©╫О©╫О©╫д╪О©╫О©╫ж╦О©╫О©╫О©╫н╡О©╫О©╫О©╫т╤О©╫О©╫О©╫О©╫О©╫д╪О©╫О©╫ж╦О©╫О©╫
 		if (!dir.endsWith(File.separator)) {
 			dir = dir + File.separator;
 		}
 		File dirFile = new File(dir);
-		// хГ╧Шdir╤тс╕╣днд╪Ч╡╩╢Фтзё╛╩Руъ╡╩йгр╩╦Жд©б╪ё╛тРмкЁЖ
+		// О©╫О©╫О©╫dirО©╫О©╫с╕О©╫О©╫О©╫д╪О©╫О©╫О©╫О©╫О©╫О©╫зёО©╫О©╫О©╫О©╫ъ╡О©╫О©╫О©╫р╩О©╫О©╫д©б╪О©╫О©╫О©╫О©╫О©╫кЁО©╫
 		if (!dirFile.exists() || !dirFile.isDirectory()) {
-			logger.warn("и╬ЁЩд©б╪й╖╟э" + dir + "д©б╪╡╩╢Фтзё║");
+			logger.warn("и╬О©╫О©╫д©б╪й╖О©╫О©╫" + dir + "д©б╪О©╫О©╫О©╫О©╫О©╫зёО©╫");
 			return false;
 		}
 		boolean flag = true;
-		// и╬ЁЩнд╪Ч╪поб╣дкЫспнд╪Ч(╟Эю╗всд©б╪)
+		// и╬О©╫О©╫О©╫д╪О©╫О©╫О©╫О©╫б╣О©╫О©╫О©╫О©╫О©╫О©╫д╪О©╫(О©╫О©╫(О©╫О©╫д©б╪)
 		File[] files = dirFile.listFiles();
 		for (int i = 0; i < files.length; i++) {
-			// и╬ЁЩвснд╪Ч
+			// и╬О©╫О©╫О©╫О©╫О©╫д╪О©╫
 			if (files[i].isFile()) {
 				flag = deleteFile(files[i].getAbsolutePath());
 				if (!flag) {
 					break;
 				}
 			}
-			// и╬ЁЩвсд©б╪
+			// и╬О©╫О©╫О©╫О©╫д©б╪
 			else {
 				flag = deleteDirectory(files[i].getAbsolutePath());
 				if (!flag) {
@@ -93,16 +93,16 @@ public class DeleteFileOrDir {
 		}
 
 		if (!flag) {
-			logger.warn("и╬ЁЩд©б╪й╖╟э");
+			logger.warn("и╬О©╫О©╫д©б╪й╖О©╫О©╫");
 			return false;
 		}
 
-		// и╬ЁЩ╣╠г╟д©б╪
+		// и╬О©╫О©╫г╟д©б╪
 		if (dirFile.delete()) {
-			logger.info("и╬ЁЩд©б╪" + dir + "Ёи╧╕ё║");
+			logger.info("и╬О©╫О©╫д©б╪" + dir + "О©╫и╧О©╫О©╫О©╫");
 			return true;
 		} else {
-			logger.warn("и╬ЁЩд©б╪" + dir + "й╖╟эё║");
+			logger.warn("и╬О©╫О©╫д©б╪" + dir + "й╖О©╫эёО©╫");
 			return false;
 		}
 	}

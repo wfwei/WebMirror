@@ -1,10 +1,8 @@
-package mine.mycrawler.snapshot;
+package edu.zju.wfwei.snapshot;
 
 import java.io.UnsupportedEncodingException;
 import java.util.regex.Pattern;
 
-import mine.mycrawler.util.UrlRel;
-import mine.mycrawler.util.io.WriteResult;
 
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
@@ -13,6 +11,8 @@ import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
+import edu.zju.wfwei.util.UrlRel;
+import edu.zju.wfwei.util.io.WriteResult;
 
 public class SnapshotCrawler extends WebCrawler {
 
@@ -20,7 +20,7 @@ public class SnapshotCrawler extends WebCrawler {
 			.compile(".*(\\.(mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf"
 					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 	private static final Pattern staticFilePatterns = Pattern
-			.compile(".*(\\.(js|css|bmp|gif|jpe?g|png|tiff?))$");
+			.compile(".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?))$");
 	private static String crawlDomain = null;
 	private static String snapshotLocation = null;
 	
@@ -48,6 +48,7 @@ public class SnapshotCrawler extends WebCrawler {
 	@Override
 	public boolean shouldVisit(WebURL url) {
 		String href = url.getURL().toLowerCase();
+		//ignore radio and video
 		if (filters.matcher(href).matches()) {
 			return false;
 		}
@@ -60,7 +61,8 @@ public class SnapshotCrawler extends WebCrawler {
 		if (href.startsWith("/"))
 			return true;
 		// in-site link
-		if (href.startsWith(crawlDomain)) {
+		// TODO ֻ�5�����ҳ
+		if (href.equals(crawlDomain)) {
 			return true;
 		}
 		return false;

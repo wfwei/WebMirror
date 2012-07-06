@@ -1,11 +1,9 @@
-package mine.mycrawler.snapshot;
+package edu.zju.wfwei.snapshot;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
-import mine.mycrawler.util.UrlRel;
-import mine.mycrawler.util.io.DeleteFileOrDir;
 
 import org.apache.log4j.Logger;
 
@@ -14,6 +12,8 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import edu.zju.wfwei.util.UrlRel;
+import edu.zju.wfwei.util.io.DeleteFileOrDir;
 
 /**
  * @author WangFengwei <cf.wfwei at gmail dot com>

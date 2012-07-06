@@ -1,4 +1,4 @@
-package mine.mycrawler.util;
+package edu.zju.wfwei.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,8 +30,8 @@ public class UrlRel {
 				supdirs += "../";
 		}
 		// 找到以href或者src开头并且之后的双引号中，以http地址开头或/开头的字符串
-		String regstr = "(href|src)\\s*=\\s*\"\\s*(/|((http://)?([^/\"]+)[/]?))([^\"]*\\s*\")";
-		Pattern urlFilter = Pattern.compile(regstr);
+		String regstr = "(href|src)\\s*=\\s*\"\\s*(/|((http://)([^/\"]+)[/]?))([^\"]*\\s*\")";
+		Pattern urlFilter = Pattern.compile(regstr, Pattern.CASE_INSENSITIVE);
 		Matcher matchRes = urlFilter.matcher(rHtml);
 
 		StringBuffer sb = new StringBuffer();

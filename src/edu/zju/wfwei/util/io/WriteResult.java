@@ -1,4 +1,4 @@
-package mine.mycrawler.util.io;
+package edu.zju.wfwei.util.io;
 
 import java.io.File;
 import java.io.FileOutputStream;
