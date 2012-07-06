@@ -4,7 +4,7 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 /**
- * ɾ���ļ���Ŀ¼
+ * 删除文件或目录
  * 
  * @author WangFengwei
  * @since 2012-6-20
@@ -14,17 +14,17 @@ public class DeleteFileOrDir {
 	private static Logger logger = Logger.getLogger(DeleteFileOrDir.class);
 
 	/**
-	 * ɾ���ļ��������ǵ����ļ����ļ���
+	 * 删除文件，可以是单个文件或文件夹
 	 * 
 	 * @param fileName
-	 *            ��ɾ����ļ���
-	 * @return true �ļ�ɾ��ɹ�
-	 * @return false ɾ��ʧ��
+	 *            待删除的文件名
+	 * @return true 文件删除成功
+	 * @return false 删除失败
 	 */
 	public static boolean delete(String fileName) {
 		File file = new File(fileName);
 		if (!file.exists()) {
-			logger.warn("ɾ���ļ�ʧ�ܣ�" + fileName + "�ļ�������");
+			logger.warn("删除文件失败：" + fileName + "文件不存在");
 			return false;
 		} else {
 			if (file.isFile()) {
@@ -36,54 +36,54 @@ public class DeleteFileOrDir {
 	}
 
 	/**
-	 * ɾ����ļ�
+	 * 删除单个文件
 	 * 
 	 * @param fileName
-	 *            ��ɾ���ļ����ļ���
-	 * @return �����ļ�ɾ��ɹ�����true,���򷵻�false
+	 *            被删除文件的文件名
+	 * @return 单个文件删除成功返回true,否则返回false
 	 */
 	public static boolean deleteFile(String fileName) {
 		File file = new File(fileName);
 		if (file.isFile() && file.exists()) {
 			file.delete();
-			logger.info("ɾ����ļ�" + fileName + "�ɹ���");
+			logger.info("删除单个文件" + fileName + "成功！");
 			return true;
 		} else {
-			logger.warn("ɾ����ļ�" + fileName + "ʧ�ܣ�");
+			logger.warn("删除单个文件" + fileName + "失败！");
 			return false;
 		}
 	}
 
 	/**
-	 * ɾ��Ŀ¼���ļ��У��Լ�Ŀ¼�µ��ļ�
+	 * 删除目录（文件夹）以及目录下的文件
 	 * 
 	 * @param dir
-	 *            ��ɾ��Ŀ¼���ļ�·��
-	 * @return Ŀ¼ɾ��ɹ�����true,���򷵻�false
+	 *            被删除目录的文件路径
+	 * @return 目录删除成功返回true,否则返回false
 	 */
 	public static boolean deleteDirectory(String dir) {
-		// ���dir�����ļ��ָ���β���Զ�����ļ��ָ��
+		// 如果dir不以文件分隔符结尾，自动添加文件分隔符
 		if (!dir.endsWith(File.separator)) {
 			dir = dir + File.separator;
 		}
 		File dirFile = new File(dir);
-		// ���dir��Ӧ���ļ������ڣ����߲���һ��Ŀ¼�����˳�
+		// 如果dir对应的文件不存在，或者不是一个目录，则退出
 		if (!dirFile.exists() || !dirFile.isDirectory()) {
-			logger.warn("ɾ��Ŀ¼ʧ��" + dir + "Ŀ¼�����ڣ�");
+			logger.warn("删除目录失败" + dir + "目录不存在！");
 			return false;
 		}
 		boolean flag = true;
-		// ɾ���ļ����µ������ļ�(��(��Ŀ¼)
+		// 删除文件夹下的所有文件(包括子目录)
 		File[] files = dirFile.listFiles();
 		for (int i = 0; i < files.length; i++) {
-			// ɾ�����ļ�
+			// 删除子文件
 			if (files[i].isFile()) {
 				flag = deleteFile(files[i].getAbsolutePath());
 				if (!flag) {
 					break;
 				}
 			}
-			// ɾ����Ŀ¼
+			// 删除子目录
 			else {
 				flag = deleteDirectory(files[i].getAbsolutePath());
 				if (!flag) {
@@ -93,16 +93,16 @@ public class DeleteFileOrDir {
 		}
 
 		if (!flag) {
-			logger.warn("ɾ��Ŀ¼ʧ��");
+			logger.warn("删除目录失败");
 			return false;
 		}
 
-		// ɾ��ǰĿ¼
+		// 删除当前目录
 		if (dirFile.delete()) {
-			logger.info("ɾ��Ŀ¼" + dir + "�ɹ���");
+			logger.info("删除目录" + dir + "成功！");
 			return true;
 		} else {
-			logger.warn("ɾ��Ŀ¼" + dir + "ʧ�ܣ�");
+			logger.warn("删除目录" + dir + "失败！");
 			return false;
 		}
 	}
