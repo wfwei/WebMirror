@@ -33,7 +33,7 @@ public class SnapshotCrawlController {
 	private static void loadConfigFile() {
 		InputStream is;
 		try {
-			is = new FileInputStream("src/main/resources/crawler4j.properties");
+			is = new FileInputStream("resources/crawler4j.properties");
 			Properties prop = new Properties();
 			prop.load(is);
 			numberOfCrawlers = Integer.parseInt(prop.getProperty(

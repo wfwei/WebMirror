@@ -61,8 +61,7 @@ public class SnapshotCrawler extends WebCrawler {
 		if (href.startsWith("/"))
 			return true;
 		// in-site link
-		// TODO ֻ�5�����ҳ
-		if (href.equals(crawlDomain)) {
+		if (href.startsWith(crawlDomain)) {
 			return true;
 		}
 		return false;
@@ -92,7 +91,7 @@ public class SnapshotCrawler extends WebCrawler {
 					subDomain, path);
 			try {
 				// 统一使用utf-8编码
-				nHtml = nHtml.replaceFirst("charset=[^\"]*\"", "charset=utf-8");
+				nHtml = nHtml.replaceFirst("charset=[^\"]*\"", "charset=utf-8\"");
 				contentData = nHtml.getBytes("utf-8");
 			} catch (UnsupportedEncodingException e) {
 				logger.error("this should never happen" + e.toString());

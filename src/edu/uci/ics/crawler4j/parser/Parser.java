@@ -62,10 +62,12 @@ public class Parser extends Configurable {
 		} else if (Util.hasPlainTextContent(page.getContentType())) {
 			try {
 				TextParseData parseData = new TextParseData();
-				parseData.setTextContent(new String(page.getContentData(), page.getContentCharset()));
+				parseData.setTextContent(new String(page.getContentData(), page
+						.getContentCharset()));
 				page.setParseData(parseData);
 				return true;
 			} catch (Exception e) {
+				System.err.println("error:" + contextURL + e.toString());
 				e.printStackTrace();
 			}
 			return false;
@@ -76,7 +78,8 @@ public class Parser extends Configurable {
 		InputStream inputStream = null;
 		try {
 			inputStream = new ByteArrayInputStream(page.getContentData());
-			htmlParser.parse(inputStream, contentHandler, metadata, parseContext);
+			htmlParser.parse(inputStream, contentHandler, metadata,
+					parseContext);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -96,27 +99,28 @@ public class Parser extends Configurable {
 		HtmlParseData parseData = new HtmlParseData();
 		parseData.setText(contentHandler.getBodyText().trim());
 		parseData.setTitle(metadata.get(Metadata.TITLE));
-		
+
 		try {
 			if (page.getContentCharset() == null) {
 				parseData.setHtml(new String(page.getContentData()));
 			} else {
-				parseData.setHtml(new String(page.getContentData(), page.getContentCharset()));
+				parseData.setHtml(new String(page.getContentData(), page
+						.getContentCharset()));
 			}
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		/**
-		 * @author WangFengwei
-		 * extract js links
+		 * @author WangFengwei extract js links
 		 */
-		for(ExtractedUrlAnchorPair jsLinkPair : (HashSet<ExtractedUrlAnchorPair>)ExtractJsLink.extractJsLinks(parseData.getHtml())){
+		for (ExtractedUrlAnchorPair jsLinkPair : (HashSet<ExtractedUrlAnchorPair>) ExtractJsLink
+				.extractJsLinks(parseData.getHtml())) {
 			contentHandler.addOutgoingUrls(jsLinkPair);
 		}
 		// end
-		
+
 		List<WebURL> outgoingUrls = new ArrayList<WebURL>();
 
 		String baseURL = contentHandler.getBaseUrl();
@@ -125,7 +129,8 @@ public class Parser extends Configurable {
 		}
 
 		int urlCount = 0;
-		for (ExtractedUrlAnchorPair urlAnchorPair : contentHandler.getOutgoingUrls()) {
+		for (ExtractedUrlAnchorPair urlAnchorPair : contentHandler
+				.getOutgoingUrls()) {
 			String href = urlAnchorPair.getHref();
 			href = href.trim();
 			if (href.length() == 0) {
@@ -135,8 +140,9 @@ public class Parser extends Configurable {
 			if (href.startsWith("http://")) {
 				hrefWithoutProtocol = href.substring(7);
 			}
-			// 这里还没弄清楚是干啥的
-			if (!hrefWithoutProtocol.contains("javascript:") && !hrefWithoutProtocol.contains("@")) {
+			// ??
+			if (!hrefWithoutProtocol.contains("javascript:")
+					&& !hrefWithoutProtocol.contains("@")) {
 				String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
 				if (url != null) {
 					WebURL webURL = new WebURL();
