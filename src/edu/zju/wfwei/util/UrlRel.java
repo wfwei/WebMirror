@@ -3,91 +3,87 @@ package edu.zju.wfwei.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.zju.wfwei.snapshot.Config;
+
 public class UrlRel {
+
 	/**
-	 * redirect in-site urls
-	 * 
-	 * @author WangFengwei
+	 * 对站内链接进行redirect，同时考虑子域名
 	 * 
 	 * @param rHtml
-	 *            : src of web page
-	 * @param domain
-	 *            : domain of web page, such as: wrfrwrrr.com
 	 * @param subDomain
-	 *            :subdomain of web page, such as: www or baike
+	 * @param domain
 	 * @param path
-	 *            : path of web page, such as: blog/main.css
-	 * @return relative address ../../main.css
+	 * @return
 	 */
-	public static String redirectUrls(String rHtml, String domain,
-			String subDomain, String path) {
+	public static String redirectUrls(String rHtml, String subDomain,
+			String domain, String path) {
 		String supdirs = "./";
-		String curSite = subDomain + "." + domain;
-		String tarSite = null;
 		int idx = -1;
 		while ((idx = path.indexOf('/', idx + 1)) != -1) {
 			if (idx > 0)
 				supdirs += "../";
 		}
 		// 找到以href或者src开头并且之后的双引号中，以http地址开头或/开头的字符串
-		String regstr = "(href|src)\\s*=\\s*\"\\s*(/|((http://)([^/\"]+)[/]?))([^\"]*\\s*\")";
+		String regstr = "(href|src)\\s*=\\s*\"\\s*(/|((http://)([^/\"]+[/]?)))([^\"]*\")";
 		Pattern urlFilter = Pattern.compile(regstr, Pattern.CASE_INSENSITIVE);
 		Matcher matchRes = urlFilter.matcher(rHtml);
 
 		StringBuffer sb = new StringBuffer();
 		while (matchRes.find()) {
-			// System.out.println("group count: " + matchRes.groupCount());
-			tarSite = matchRes.group(matchRes.groupCount() - 1);
-			if (tarSite != null && !tarSite.equals(curSite))
-				matchRes.appendReplacement(sb,
-						matchRes.group(1) + "=\"" + supdirs + "../" + tarSite
-								+ "/" + matchRes.group(matchRes.groupCount()));
-			else
-				matchRes.appendReplacement(sb, matchRes.group(1) + "=\""
-						+ supdirs + matchRes.group(matchRes.groupCount()));
 
-			if (sb.charAt(sb.length() - 2) == '/')
-				sb.insert(sb.length() - 1, "index.html");
+//			System.out.println("regex\t" + regstr);
+//			for (int i = 0; i <= matchRes.groupCount(); i++) {
+//				System.out.println("group" + i + ":\t" + matchRes.group(i));
+//			}
+
+			String curPath = matchRes.group(matchRes.groupCount());
+			if (curPath.length() > 0) {
+				curPath = specifyFile(curPath
+						.substring(0, curPath.length() - 1))
+						+ curPath.charAt(curPath.length() - 1);
+			}
+			if (matchRes.group(2).startsWith("http://")) {
+				// only redirect in-site domains
+				if (!matchRes.group(2).contains(domain))
+					matchRes.appendReplacement(sb, matchRes.group(0));
+				else if (!Config.isCrossSubDomains()
+						&& !matchRes.group(2).contains(subDomain))
+					matchRes.appendReplacement(sb, matchRes.group(0));
+				else
+					matchRes.appendReplacement(sb, matchRes.group(1) + "=\""
+							+ supdirs + "../" + matchRes.group(5) + curPath);
+			} else {
+				matchRes.appendReplacement(sb, matchRes.group(1) + "=\""
+						+ supdirs + curPath);
+			}
 		}
 		matchRes.appendTail(sb);
 		return sb.toString();
 	}
 
 	/**
-	 * 判断路径是否包含了文件名，比如：···/path/to/file/a.html 返回true；···/path/to/file
-	 * 或···/path/to/file/ 返回false；
+	 * 判断路径是否包含了文件名，比如：···/path/to/file/a.html 直接返回；···/path/to/file
+	 * 或···/path/to/file/ 返回···/path/to/file/index.html；
 	 * 
 	 * @param path
 	 * @return
 	 */
-	public static boolean fileSpecified(String path) {
+	public static String specifyFile(String path) {
+		if(null == path){
+			return "/index.html";
+		}
 		if (path.endsWith("/"))
-			return false;
-		if (path.lastIndexOf('.') < path.lastIndexOf('/'))
-			return false;
-		return true;
-	}
-
-	/**
-	 * 返回url的域名 比如 http://www.abc.com/ 的domain是www.abc.com
-	 * 
-	 * @param url
-	 * @return
-	 */
-	public static String getDomain(String url) {
-		String domain = url;
-		if (domain.startsWith("http://")) {
-			domain = domain.substring(7);
+			return path + "index.html";
+		if (path.lastIndexOf('.') <= path.lastIndexOf('/')) {
+			return path + "/index.html";
 		}
-		if (url.endsWith("/")) {
-			domain = domain.substring(0, domain.length() - 1);
-		}
-		return domain;
+		return path;
 	}
 
 	public static void main(String args[]) {
-		String rHtml = null, domain = "cdpsn.org.cn", subDomain = "www", path = "blog/main.html";
-		rHtml = "href = \" /abc/def.html\"   src = \" http://baike.baidu.com/123/456.html\" ";
-		redirectUrls(rHtml, domain, subDomain, path);
+		String rHtml = null, path = "blog/main.html";
+		rHtml = "href = \" /abc/def.html\"   src = \" http://baike.cdpsn.org.cn/123/456\" ";
+		System.out.println(redirectUrls(rHtml, "www", "cdpsn.org.cn", path));
 	}
 }

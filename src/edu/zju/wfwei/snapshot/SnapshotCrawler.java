@@ -3,7 +3,6 @@ package edu.zju.wfwei.snapshot;
 import java.io.UnsupportedEncodingException;
 import java.util.regex.Pattern;
 
-
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 
@@ -21,15 +20,12 @@ public class SnapshotCrawler extends WebCrawler {
 					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 	private static final Pattern staticFilePatterns = Pattern
 			.compile(".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?))$");
-	private static String crawlDomain = null;
-	private static String snapshotLocation = null;
 	
-	private static Logger logger = Logger.getLogger(SnapshotCrawler.class);
+	private static WebURL crawlURL = Config.getCrawlURL();
+	private static String snapshotPage = Config.getSnapshotPage();
+	private static String snapshotIndex = Config.getSnapshotIndex();
 
-	public static void configure(String crawlDomain, String snapshotFolderName) {
-		SnapshotCrawler.crawlDomain = crawlDomain;
-		snapshotLocation = snapshotFolderName;
-	}
+	private static Logger logger = Logger.getLogger(SnapshotCrawler.class);
 
 	@Override
 	protected void handlePageStatusCode(WebURL webUrl, int statusCode,
@@ -45,10 +41,13 @@ public class SnapshotCrawler extends WebCrawler {
 		}
 	}
 
+	/**
+	 * 判断顺序很重要
+	 */
 	@Override
 	public boolean shouldVisit(WebURL url) {
 		String href = url.getURL().toLowerCase();
-		//ignore radio and video
+		// ignore radio video etc...
 		if (filters.matcher(href).matches()) {
 			return false;
 		}
@@ -57,11 +56,15 @@ public class SnapshotCrawler extends WebCrawler {
 		if (staticFilePatterns.matcher(href).matches()) {
 			return true;
 		}
+
 		// in-site link
 		if (href.startsWith("/"))
 			return true;
-		// in-site link
-		if (href.startsWith(crawlDomain)) {
+
+		if (url.getDomain().equals(crawlURL.getDomain())) {
+			// sub domain
+			if (!Config.isCrossSubDomains() && !url.getSubDomain().equals(crawlURL.getSubDomain()))
+				return false;
 			return true;
 		}
 		return false;
@@ -70,37 +73,30 @@ public class SnapshotCrawler extends WebCrawler {
 	@Override
 	public void visit(Page page) {
 		WebURL weburl = page.getWebURL();
-		String url = weburl.getURL();
-		String path = weburl.getPath();
-		String domain = weburl.getDomain();
-		String subDomain = weburl.getSubDomain();
+		String fullDomain = weburl.getSubDomain() + "." + weburl.getDomain();
+		String path = UrlRel.specifyFile(weburl.getPath());
 		byte[] contentData = page.getContentData();
 		String fullLocPath = null;
-		// 沒有指定html文件的url，默认指向index.html
-		if (!UrlRel.fileSpecified(path)) {
-			if (!path.endsWith("/"))
-				path += "/";
-			path += "index.html";
-		}
-		fullLocPath = snapshotLocation + "/" + subDomain + "." + domain + path;
+
+		fullLocPath = snapshotPage + "/" + fullDomain + path;
 		if (page.getContentType() != null
 				&& page.getContentType().contains("text/html")) {
 			// 将网页文件中的链接重定向本地
 			HtmlParseData htmlpd = (HtmlParseData) page.getParseData();
-			String nHtml = UrlRel.redirectUrls(htmlpd.getHtml(), domain,
-					subDomain, path);
+			String nHtml = UrlRel.redirectUrls(htmlpd.getHtml(), weburl.getSubDomain(), weburl.getDomain(),
+					path);
 			try {
 				// 统一使用utf-8编码
-				nHtml = nHtml.replaceFirst("charset=[^\"]*\"", "charset=utf-8\"");
+				nHtml = nHtml.replaceFirst("charset=[^\"]*\"",
+						"charset=utf-8\"");
 				contentData = nHtml.getBytes("utf-8");
 			} catch (UnsupportedEncodingException e) {
 				logger.error("this should never happen" + e.toString());
 			}
 		}
-		WriteResult.writeIdxFile(fullLocPath, url, snapshotLocation + "/../index/"
-				+ UrlRel.getDomain(crawlDomain) + "/");
+		WriteResult.writeIdxFile(fullLocPath, weburl.getURL(), snapshotIndex + fullDomain + "/");
 		WriteResult.writeBytesToFile(contentData, fullLocPath);
-		logger.info("Stored: " + url);
+		logger.info("Stored: " + weburl.getURL());
 	}
 
 }

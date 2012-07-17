@@ -67,7 +67,7 @@ public class Parser extends Configurable {
 				page.setParseData(parseData);
 				return true;
 			} catch (Exception e) {
-				System.err.println("error:" + contextURL + e.toString());
+				System.err.println("plain text charset error:\t" + contextURL + e.toString());
 				e.printStackTrace();
 			}
 			return false;
