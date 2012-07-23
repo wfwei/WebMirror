@@ -66,6 +66,13 @@ public class UrlRel {
 	 * 判断路径是否包含了文件名，比如：···/path/to/file/a.html 直接返回；···/path/to/file
 	 * 或···/path/to/file/ 返回···/path/to/file/index.html；
 	 * 
+	 * path的几种情况：
+	 *     1. host/a/b/index.html 不用改
+	 *     2. host/a/b/ --> host/a/b/index.html
+	 *     3. host/a/b ---> host/a/b/index.html
+	 *     4. host/a/b/page.asp?para=1 --> host/a/b/page.asp
+	 *     
+	 * 
 	 * @param path
 	 * @return
 	 */
@@ -73,17 +80,30 @@ public class UrlRel {
 		if(null == path){
 			return "/index.html";
 		}
+		// 2
 		if (path.endsWith("/"))
 			return path + "index.html";
+		// 4
+		if(path.contains("?")||path.contains("=")||path.contains("&")){
+			return replaceInvalidChar(path)+"/index.html";
+		}
+		// 3
 		if (path.lastIndexOf('.') <= path.lastIndexOf('/')) {
 			return path + "/index.html";
 		}
+		// 1
 		return path;
+	}
+	
+	private static String replaceInvalidChar(String str){
+		return str.replaceAll("[:?*\"<>|\\\\]", "REPLACEMENT");
 	}
 
 	public static void main(String args[]) {
-		String rHtml = null, path = "blog/main.html";
-		rHtml = "href = \" /abc/def.html\"   src = \" http://baike.cdpsn.org.cn/123/456\" ";
-		System.out.println(redirectUrls(rHtml, "www", "cdpsn.org.cn", path));
+//		String rHtml = null, path = "blog/main.html";
+//		rHtml = "href = \" /abc/def.html\"   src = \" http://baike.cdpsn.org.cn/123/456\" ";
+//		System.out.println(redirectUrls(rHtml, "www", "cdpsn.org.cn", path));
+		String invalidString = "\\:*?\"<>";
+		System.out.println(replaceInvalidChar(invalidString));
 	}
 }

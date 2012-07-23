@@ -76,9 +76,7 @@ public class SnapshotCrawler extends WebCrawler {
 		String fullDomain = weburl.getSubDomain() + "." + weburl.getDomain();
 		String path = UrlRel.specifyFile(weburl.getPath());
 		byte[] contentData = page.getContentData();
-		String fullLocPath = null;
-
-		fullLocPath = snapshotPage + "/" + fullDomain + path;
+		String fullLocPath = snapshotPage + "/" + fullDomain + path;
 		if (page.getContentType() != null
 				&& page.getContentType().contains("text/html")) {
 			// 将网页文件中的链接重定向本地

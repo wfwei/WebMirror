@@ -104,10 +104,11 @@ public class WebURL implements Serializable {
 			}
 		}
 		path = url.substring(domainEndIdx);
-		int pathEndIdx = path.indexOf('?');
-		if (pathEndIdx >= 0) {
-			path = path.substring(0, pathEndIdx);
-		}
+		//TODO test @auth wfw
+//		int pathEndIdx = path.indexOf('?');
+//		if (pathEndIdx >= 0) {
+//			path = path.substring(0, pathEndIdx);
+//		}
 	}
 
 	/**
