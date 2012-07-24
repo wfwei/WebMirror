@@ -1,6 +1,12 @@
 package edu.zju.wfwei.snapshot;
 
+import info.monitorenter.cpdetector.io.CodepageDetectorProxy;
+import info.monitorenter.cpdetector.io.JChardetFacade;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpStatus;
@@ -79,27 +85,98 @@ public class SnapshotCrawler extends WebCrawler {
 		byte[] contentData = page.getContentData();
 		String fullLocPath = snapshotPage
 				+ UrlRel.specifyFile(fullDomain + weburl.getPath());
-		if (page.getContentType() != null
-				&& page.getContentType().contains("text/html")) {
-			// 将网页文件中的链接重定向本地
-			HtmlParseData htmlpd = (HtmlParseData) page.getParseData();
-			String nHtml = UrlRel.redirectUrls(htmlpd.getHtml(),
-					weburl.getSubDomain(), weburl.getDomain(), path);
-			try {
-				// 统一使用utf-8编码
-				nHtml = nHtml
-						.replaceFirst(
-								"(<[Mm][Ee][Tt][Aa].*?charset\\s*=\\s*['\"]?)[^'\"]*?(['\"]?)",
-								"$1utf-8$2");
-				contentData = nHtml.getBytes("utf-8");
-			} catch (UnsupportedEncodingException e) {
-				logger.error("this should never happen" + e.toString());
+		if (page.getContentType() != null) {
+			logger.info("contentType:\t" + page.getContentType() + "\turl:\t"
+					+ weburl.getURL());
+			// 转码 html
+			if (page.getContentType().contains("text/html")) {
+				// 将网页文件中的链接重定向本地
+				HtmlParseData htmlpd = (HtmlParseData) page.getParseData();
+				String nHtml = UrlRel.redirectUrls(htmlpd.getHtml(),
+						weburl.getSubDomain(), weburl.getDomain(), path);
+				try {
+					// 统一使用utf-8编码
+					nHtml = nHtml
+							.replaceFirst(
+									"(<[Mm][Ee][Tt][Aa].*?charset\\s*=\\s*['\"]?)[^'\";,\\s>]*?(['\";,\\s>])",
+									"$1utf-8$2");
+					contentData = nHtml.getBytes("utf-8");
+				} catch (UnsupportedEncodingException e) {
+					logger.error("this should never happen" + e.toString());
+				}
+			} else if (page.getContentType().contains("javascript")
+					|| page.getContentType().contains("css")) {
+				// 转码 js and css
+				String charset = page.getContentCharset();
+				// TODO 如果文件没有指明编码，则不改期编码，这样文件的实际编码有可能是gb2312，但是不会出现乱码
+				if (charset == null) {
+					// 解析静态文件的编码
+					CodepageDetectorProxy detector = CodepageDetectorProxy
+							.getInstance();
+					detector.add(JChardetFacade.getInstance());
+					Charset icharset = null;
+					try {
+						ByteArrayInputStream bis = new ByteArrayInputStream(
+								contentData);
+						icharset = detector.detectCodepage(bis,
+								contentData.length);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					if (null != icharset)
+						charset = icharset.toString();
+				}
+				if (charset != null) {
+					if (!charset.equals("utf-8")) {
+						String str = null;
+						try {
+							str = new String(contentData, charset);
+							contentData = str.getBytes("utf-8");
+						} catch (UnsupportedEncodingException e) {
+							logger.warn("invalid charset using default gb2312\t"
+									+ page.getWebURL().getURL());
+							try {
+								str = new String(contentData, "gb2312");
+								contentData = str.getBytes("utf-8");
+							} catch (UnsupportedEncodingException e1) {
+								logger.warn("this should nerver happen! in SnapshotCrawler.java");
+							}
+						}
+					}
+				} else {
+					logger.warn("write a js or css file without a charset\t"
+							+ page.getWebURL().getURL());
+				}
+			} else if (page.getContentType().contains("image")) {
+				// TODO 现在不保存这类图片，以后可以修改文件名保存
+				if (!page
+						.getWebURL()
+						.getURL()
+						.matches(
+								".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?|ico))$")) {
+					return;
+				}
+			} else if (page.getContentType().contains("application")
+					&& page.getContentType().contains("ms")) {
+				// msword msexcel...
+				logger.warn("跳过\t" + page.getContentType() + "\t"
+						+ page.getWebURL().getURL());
+				return;
+			} else {
+				logger.warn("跳过 uncommon content type:\t"
+						+ page.getContentType() + "\turl:\t"
+						+ page.getWebURL().getURL());
+				return;
 			}
+		} else {
+			logger.warn("跳过 page without content type\t"
+					+ page.getWebURL().getURL());
+			return;
 		}
 		WriteResult.writeIdxFile(fullLocPath, weburl.getURL(), snapshotIndex
 				+ fullDomain + "/");
+		// WriteResult.writeResFile(contentData, fullLocPath);
 		WriteResult.writeBytesToFile(contentData, fullLocPath);
 		logger.info("Stored: " + weburl.getURL());
 	}
-
 }

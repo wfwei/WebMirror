@@ -14,7 +14,6 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class SnapshotCrawlController {
 
-	// TODO flogger is not in function
 	private static Logger logger = Logger
 			.getLogger(SnapshotCrawlController.class);
 

@@ -1,8 +1,11 @@
 package edu.zju.wfwei.util.io;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -34,7 +37,7 @@ public class WriteResult {
 			fc.write(ByteBuffer.wrap(data.getBytes()));
 			fc.close();
 		} catch (IOException ioe) {
-			logger.warn("error in writeIdxFile"+ioe.toString());
+			logger.warn("error in writeIdxFile" + ioe.toString());
 		}
 	}
 
@@ -66,5 +69,28 @@ public class WriteResult {
 		dir.mkdirs();
 	}
 
+	public static void writeResFile(byte[] contentData, String des) {
+		try {
+			createParentFolders(des);
+			FileOutputStream fos = new FileOutputStream(des);
+			fos.write(contentData);
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			logger.warn("error in writeResFile" + e.toString());
+		}
+
+	}
+
+	public static void main(String args[]) {
+		byte[] bs;
+		try {
+			bs = "你好a ".getBytes("gb2312");
+			writeBytesToFile(bs, "d:/test.txt");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 }

@@ -51,7 +51,7 @@ public class UrlRel {
 				newUrl.setURL(url);
 				String locPath = newUrl.getSubDomain() + "."
 						+ newUrl.getDomain() + newUrl.getPath();
-				System.out.println("locPath\t" + locPath);
+				//System.out.println("locPath\t" + locPath);
 
 				if (url.contains(domain)) {
 					if (!Config.isCrossSubDomains() && !url.contains(subDomain)) {
