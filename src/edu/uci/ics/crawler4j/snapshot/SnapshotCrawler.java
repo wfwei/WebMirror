@@ -11,6 +11,7 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.UrlRel;
 import edu.uci.ics.crawler4j.url.WebURL;
+import edu.uci.ics.crawler4j.util.Config;
 import edu.uci.ics.crawler4j.util.io.WriteResult;
 
 public class SnapshotCrawler extends WebCrawler {

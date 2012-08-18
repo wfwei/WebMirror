@@ -1,4 +1,4 @@
-package edu.uci.ics.crawler4j.snapshot;
+package edu.uci.ics.crawler4j.util;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -25,7 +25,7 @@ public class Config {
 	public static void configFromFile() {
 		InputStream is;
 		try {
-			is = SnapshotCrawlController.class
+			is = Config.class
 					.getResourceAsStream("/crawler4j.properties");
 			Properties prop = new Properties();
 			prop.load(is);
@@ -92,8 +92,8 @@ public class Config {
 		return crawlURL;
 	}
 
-	public static void setCrawlURL(WebURL crawlURL) {
-		Config.crawlURL = crawlURL;
+	public static void setCrawlURL(String crawlURL) {
+		Config.crawlURL.setURL(crawlURL);
 	}
 
 	public static boolean isCrossSubDomains() {
