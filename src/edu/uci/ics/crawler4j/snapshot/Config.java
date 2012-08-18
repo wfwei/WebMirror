@@ -1,13 +1,13 @@
-package edu.zju.wfwei.snapshot;
+package edu.uci.ics.crawler4j.snapshot;
 
 import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import edu.uci.ics.crawler4j.url.UrlRel;
 import edu.uci.ics.crawler4j.url.WebURL;
-import edu.zju.wfwei.util.UrlRel;
-import edu.zju.wfwei.util.io.DeleteFileOrDir;
+import edu.uci.ics.crawler4j.util.io.DeleteFileOrDir;
 
 public class Config {
 	private static int numberOfCrawlers = 1;

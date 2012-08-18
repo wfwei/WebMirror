@@ -1,4 +1,4 @@
-package edu.zju.wfwei.util.io;
+package edu.uci.ics.crawler4j.util.io;
 
 import java.io.File;
 import java.io.FileOutputStream;

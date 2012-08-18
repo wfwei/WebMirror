@@ -25,7 +25,8 @@ import edu.uci.ics.crawler4j.frontier.Frontier;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
-import edu.uci.ics.crawler4j.util.IO;
+import edu.uci.ics.crawler4j.util.io.IO;
+
 import org.apache.log4j.Logger;
 
 import java.io.File;

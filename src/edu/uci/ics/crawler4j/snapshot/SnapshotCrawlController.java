@@ -1,4 +1,4 @@
-package edu.zju.wfwei.snapshot;
+package edu.uci.ics.crawler4j.snapshot;
 
 import org.apache.log4j.Logger;
 

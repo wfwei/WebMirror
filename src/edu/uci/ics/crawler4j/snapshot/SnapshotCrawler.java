@@ -1,4 +1,4 @@
-package edu.zju.wfwei.snapshot;
+package edu.uci.ics.crawler4j.snapshot;
 
 import java.io.UnsupportedEncodingException;
 import java.util.regex.Pattern;
@@ -9,9 +9,9 @@ import org.apache.log4j.Logger;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import edu.uci.ics.crawler4j.url.UrlRel;
 import edu.uci.ics.crawler4j.url.WebURL;
-import edu.zju.wfwei.util.UrlRel;
-import edu.zju.wfwei.util.io.WriteResult;
+import edu.uci.ics.crawler4j.util.io.WriteResult;
 
 public class SnapshotCrawler extends WebCrawler {
 

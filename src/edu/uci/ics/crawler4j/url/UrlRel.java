@@ -1,12 +1,10 @@
-package edu.zju.wfwei.util;
+package edu.uci.ics.crawler4j.url;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.uci.ics.crawler4j.url.URLCanonicalizer;
-import edu.uci.ics.crawler4j.url.WebURL;
+import edu.uci.ics.crawler4j.snapshot.Config;
 import edu.uci.ics.crawler4j.util.Debug;
-import edu.zju.wfwei.snapshot.Config;
 
 public class UrlRel {
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package edu.uci.ics.crawler4j.util;
+package edu.uci.ics.crawler4j.util.io;
 
 import java.io.*;
 import java.nio.ByteBuffer;
