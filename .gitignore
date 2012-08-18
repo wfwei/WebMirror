@@ -4,3 +4,4 @@ target/*
 .settings/*
 javadocs/*
 /res
+*.log

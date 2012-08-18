@@ -47,7 +47,7 @@ public class CrawlConfig {
 	 * user-agent string that is used for representing your crawler to web
 	 * servers. See http://en.wikipedia.org/wiki/User_agent for more details
 	 */
-	private String userAgentString = "crawler4j (http://code.google.com/p/crawler4j/)";
+	private String userAgentString = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1";
 
 	/**
 	 * Politeness delay in milliseconds (delay between sending two requests to

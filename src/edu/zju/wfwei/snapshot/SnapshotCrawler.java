@@ -1,12 +1,6 @@
 package edu.zju.wfwei.snapshot;
 
-import info.monitorenter.cpdetector.io.CodepageDetectorProxy;
-import info.monitorenter.cpdetector.io.JChardetFacade;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpStatus;
@@ -21,11 +15,13 @@ import edu.zju.wfwei.util.io.WriteResult;
 
 public class SnapshotCrawler extends WebCrawler {
 
-	private static final Pattern filters = Pattern
-			.compile(".*(\\.(mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf"
-					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
-	private static final Pattern staticFilePatterns = Pattern
-			.compile(".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?|ico))$");
+	private static final Pattern filters = Pattern.compile(
+			".*(\\.(mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf"
+					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$",
+			Pattern.CASE_INSENSITIVE);
+	private static final Pattern staticFilePatterns = Pattern.compile(
+			".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?|ico))$",
+			Pattern.CASE_INSENSITIVE);
 
 	private static WebURL crawlURL = Config.getCrawlURL();
 	private static String snapshotPage = Config.getSnapshotPage();
@@ -63,15 +59,18 @@ public class SnapshotCrawler extends WebCrawler {
 			return true;
 		}
 
-		// in-site link
-		if (href.startsWith("/"))
-			return true;
+		// sub domain
+		if (!Config.isCrossSubDomains()
+				&& !url.getSubDomain().equals(crawlURL.getSubDomain())) {
+			return false;
+		}
+
+		// port
+		if (!Config.isCrossPorts() && url.getPort() != crawlURL.getPort()) {
+			return false;
+		}
 
 		if (url.getDomain().equals(crawlURL.getDomain())) {
-			// sub domain
-			if (!Config.isCrossSubDomains()
-					&& !url.getSubDomain().equals(crawlURL.getSubDomain()))
-				return false;
 			return true;
 		}
 		return false;
@@ -80,103 +79,94 @@ public class SnapshotCrawler extends WebCrawler {
 	@Override
 	public void visit(Page page) {
 		WebURL weburl = page.getWebURL();
-		String fullDomain = weburl.getSubDomain() + "." + weburl.getDomain();
-		String path = UrlRel.specifyFile(weburl.getPath());
 		byte[] contentData = page.getContentData();
-		String fullLocPath = snapshotPage
-				+ UrlRel.specifyFile(fullDomain + weburl.getPath());
-		if (page.getContentType() != null) {
-			logger.info("contentType:\t" + page.getContentType() + "\turl:\t"
-					+ weburl.getURL());
-			// 转码 html
-			if (page.getContentType().contains("text/html")) {
-				// 将网页文件中的链接重定向本地
-				HtmlParseData htmlpd = (HtmlParseData) page.getParseData();
-				String nHtml = UrlRel.redirectUrls(htmlpd.getHtml(),
-						weburl.getSubDomain(), weburl.getDomain(), path);
-				try {
-					// 统一使用utf-8编码
-					nHtml = nHtml
-							.replaceFirst(
-									"(<[Mm][Ee][Tt][Aa].*?charset\\s*=\\s*['\"]?)[^'\";,\\s>]*?(['\";,\\s>])",
-									"$1utf-8$2");
-					contentData = nHtml.getBytes("utf-8");
-				} catch (UnsupportedEncodingException e) {
-					logger.error("this should never happen" + e.toString());
-				}
-			} else if (page.getContentType().contains("javascript")
-					|| page.getContentType().contains("css")) {
-				// 转码 js and css
-				String charset = page.getContentCharset();
-				// TODO 如果文件没有指明编码，则不改期编码，这样文件的实际编码有可能是gb2312，但是不会出现乱码
-				if (charset == null) {
-					// 解析静态文件的编码
-					CodepageDetectorProxy detector = CodepageDetectorProxy
-							.getInstance();
-					detector.add(JChardetFacade.getInstance());
-					Charset icharset = null;
-					try {
-						ByteArrayInputStream bis = new ByteArrayInputStream(
-								contentData);
-						icharset = detector.detectCodepage(bis,
-								contentData.length);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					if (null != icharset)
-						charset = icharset.toString();
-				}
-				if (charset != null) {
-					if (!charset.equals("utf-8")) {
-						String str = null;
-						try {
-							str = new String(contentData, charset);
-							contentData = str.getBytes("utf-8");
-						} catch (UnsupportedEncodingException e) {
-							logger.warn("invalid charset using default gb2312\t"
-									+ page.getWebURL().getURL());
-							try {
-								str = new String(contentData, "gb2312");
-								contentData = str.getBytes("utf-8");
-							} catch (UnsupportedEncodingException e1) {
-								logger.warn("this should nerver happen! in SnapshotCrawler.java");
-							}
-						}
-					}
-				} else {
-					logger.warn("write a js or css file without a charset\t"
-							+ page.getWebURL().getURL());
-				}
-			} else if (page.getContentType().contains("image")) {
-				// TODO 现在不保存这类图片，以后可以修改文件名保存
-				if (!page
-						.getWebURL()
-						.getURL()
-						.matches(
-								".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?|ico))$")) {
-					return;
-				}
-			} else if (page.getContentType().contains("application")
-					&& page.getContentType().contains("ms")) {
-				// msword msexcel...
-				logger.warn("跳过\t" + page.getContentType() + "\t"
-						+ page.getWebURL().getURL());
-				return;
-			} else {
-				logger.warn("跳过 uncommon content type:\t"
-						+ page.getContentType() + "\turl:\t"
-						+ page.getWebURL().getURL());
-				return;
-			}
-		} else {
+
+		String fullValidDomain = UrlRel.getFullValidDomain(weburl);
+		String validPath = UrlRel.appendFileToPath(weburl.getPath());
+		String fullLocPath = snapshotPage + "/" + fullValidDomain + validPath;
+		// logger.info("FullLocPath:" + fullLocPath);
+
+		if (page.getContentType() == null) {
+			/* 查看上海残联日志，基本不会出现 */
 			logger.warn("跳过 page without content type\t"
 					+ page.getWebURL().getURL());
 			return;
 		}
+
+		// check
+		// logger.info("contentType:\t" + page.getContentType() + "\turl:\t"
+		// + weburl.getURL());
+
+		if (page.getContentType().contains("text/html")) {
+			// 转码并重定向链接
+			HtmlParseData htmlpd = (HtmlParseData) page.getParseData();
+			String nHtml = UrlRel.redirectUrlsInHtml(htmlpd.getHtml(), weburl,
+					validPath);
+			try {
+				// html页面的meta统一使用utf-8编码，如<meta http-equiv=content-type
+				// content="text/html; charset=GBK">
+				// 同时，其引用到的静态文件如果制定了编码，也统一改为utf-8，如
+				// <script type="text/javascript" language="javascript"
+				// src="test.js" charset="utf-8"></script>
+				nHtml = nHtml
+						.replaceFirst(
+								"(<.*?charset\\s*=\\s*['\"]?)[^'\";,\\s>]*?(['\";,\\s>])",
+								"$1utf-8$2");
+				contentData = nHtml.getBytes("utf-8");
+			} catch (UnsupportedEncodingException e) {
+				logger.error("this should never happen" + e.toString());
+			}
+		} else if (page.getContentType().contains("javascript")
+				|| page.getContentType().contains("css")) {
+			// 转码 js and css
+
+			String content = page.getParseData().toString();
+			String charset = page.getContentCharset().trim();
+			if (charset != null) {
+				/* 分别对js和css文件中的链接进行重定向 */
+				if (page.getContentType().contains("javascript")) {
+					content = UrlRel.redirectUrlsInJs(content, weburl,
+							validPath);
+				} else {
+					// css中表明编码是首行@charset utf-8;的格式
+					content = UrlRel.redirectUrlsInCss(content, weburl,
+							validPath).replaceAll("@charset[^;]*;",
+							"@charset \"utf-8\";");
+				}
+
+				try {
+					contentData = content.getBytes("utf-8");
+				} catch (UnsupportedEncodingException e) {
+				}
+
+			} else {
+				logger.warn("write a js or css file without a charset\t"
+						+ page.getWebURL().getURL());
+			}
+		} else if (page.getContentType().contains("image")) {
+			// 包括image/png;image/jpeg等等
+			if (!page.getWebURL().getURL().toLowerCase()
+					.matches(".*(\\.(bmp|gif|jpe?g|png|tiff?|ico))$")) {
+				// 不保存不正常的图片
+				logger.warn("跳过\t" + page.getContentType() + "\t"
+						+ page.getWebURL().getURL());
+				return;
+			}
+		} else {
+
+			/**
+			 * 跳过的类型有：text/xml,text/plain,以及非js|css的application类型
+			 */
+			logger.warn("跳过\t" + page.getContentType() + "\turl:\t"
+					+ page.getWebURL().getURL());
+			return;
+		}
+
+		/* 写文件系统，但是前面有跳过部分文件，这样html中重定向的链接将会失效 */
 		WriteResult.writeIdxFile(fullLocPath, weburl.getURL(), snapshotIndex
-				+ fullDomain + "/");
-		// WriteResult.writeResFile(contentData, fullLocPath);
+				+ fullValidDomain + "/");
 		WriteResult.writeBytesToFile(contentData, fullLocPath);
 		logger.info("Stored: " + weburl.getURL());
+
 	}
 }

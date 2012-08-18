@@ -6,6 +6,7 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 
 import edu.uci.ics.crawler4j.url.WebURL;
+import edu.zju.wfwei.util.UrlRel;
 import edu.zju.wfwei.util.io.DeleteFileOrDir;
 
 public class Config {
@@ -18,6 +19,7 @@ public class Config {
 	private static String snapshotIndex = "D:/temp/index/";
 	private static WebURL crawlURL = new WebURL();
 	private static boolean crossSubDomains = true;
+	private static boolean crossPorts = true;
 	private static Logger logger = Logger.getLogger(Config.class);
 
 	public static void configFromFile() {
@@ -40,6 +42,8 @@ public class Config {
 					.contains("true");
 			crossSubDomains = prop.getProperty("cross_sub_domains").trim()
 					.contains("true");
+			crossPorts = prop.getProperty("cross_ports").trim()
+					.contains("true");
 			rmResFile();
 			is.close();
 		} catch (Exception e) {
@@ -48,8 +52,8 @@ public class Config {
 	}
 
 	private static void rmResFile() {
-		DeleteFileOrDir.delete(snapshotIndex + crawlURL.getSubDomain() + "."
-				+ crawlURL.getDomain());
+		String fullValidDomain = UrlRel.getFullValidDomain(crawlURL);
+		DeleteFileOrDir.delete(snapshotIndex + fullValidDomain);
 	}
 
 	public static int getNumberOfCrawlers() {
@@ -98,6 +102,14 @@ public class Config {
 
 	public static void setCrossSubDomains(boolean crossSubDomains) {
 		Config.crossSubDomains = crossSubDomains;
+	}
+
+	public static boolean isCrossPorts() {
+		return crossPorts;
+	}
+
+	public static void setCrossPorts(boolean crossPorts) {
+		Config.crossPorts = crossPorts;
 	}
 
 	public static String getSnapshotPage() {

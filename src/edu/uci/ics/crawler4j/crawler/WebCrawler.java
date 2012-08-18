@@ -22,6 +22,7 @@ import edu.uci.ics.crawler4j.fetcher.CustomFetchStatus;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.frontier.DocIDServer;
 import edu.uci.ics.crawler4j.frontier.Frontier;
+import edu.uci.ics.crawler4j.parser.ExtractLinks;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.parser.ParseData;
 import edu.uci.ics.crawler4j.parser.Parser;
@@ -42,7 +43,8 @@ import java.util.List;
  */
 public class WebCrawler implements Runnable {
 
-	protected static final Logger logger = Logger.getLogger(WebCrawler.class.getName());
+	protected static final Logger logger = Logger.getLogger(WebCrawler.class
+			.getName());
 
 	/**
 	 * The id associated to the crawler thread running this instance
@@ -146,13 +148,14 @@ public class WebCrawler implements Runnable {
 	 */
 	public void onBeforeExit() {
 	}
-	
+
 	/**
-	 * This function is called once the header of a page is fetched.
-	 * It can be overwritten by sub-classes to perform custom logic
-	 * for different status codes. For example, 404 pages can be logged, etc.
+	 * This function is called once the header of a page is fetched. It can be
+	 * overwritten by sub-classes to perform custom logic for different status
+	 * codes. For example, 404 pages can be logged, etc.
 	 */
-	protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
+	protected void handlePageStatusCode(WebURL webUrl, int statusCode,
+			String statusDescription) {
 	}
 
 	/**
@@ -231,9 +234,11 @@ public class WebCrawler implements Runnable {
 		try {
 			fetchResult = pageFetcher.fetchHeader(curURL);
 			int statusCode = fetchResult.getStatusCode();
-			handlePageStatusCode(curURL, statusCode, CustomFetchStatus.getStatusDescription(statusCode));
+			handlePageStatusCode(curURL, statusCode,
+					CustomFetchStatus.getStatusDescription(statusCode));
 			if (statusCode != HttpStatus.SC_OK) {
-				if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
+				if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY
+						|| statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
 					if (myController.getConfig().isFollowRedirects()) {
 						String movedToUrl = fetchResult.getMovedToUrl();
 						if (movedToUrl == null) {
@@ -250,14 +255,35 @@ public class WebCrawler implements Runnable {
 							webURL.setParentUrl(curURL.getParentUrl());
 							webURL.setDepth(curURL.getDepth());
 							webURL.setDocid(-1);
-							if (shouldVisit(webURL) && robotstxtServer.allows(webURL)) {
-								webURL.setDocid(docIdServer.getNewDocID(movedToUrl));
+							if (shouldVisit(webURL)
+									&& robotstxtServer.allows(webURL)) {
+								webURL.setDocid(docIdServer
+										.getNewDocID(movedToUrl));
 								frontier.schedule(webURL);
 							}
 						}
 					}
 				} else if (fetchResult.getStatusCode() == CustomFetchStatus.PageTooBig) {
-					logger.info("Skipping a page which was bigger than max allowed size: " + curURL.getURL());
+					logger.info("Skipping a page which was bigger than max allowed size: "
+							+ curURL.getURL());
+				} else if (fetchResult.getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+					/**
+					 * @author WangFengwei 重复爬取500页面2次
+					 */
+					int priority = curURL.getPriority();
+					if (priority < 127) {
+						priority += 200;
+						if (priority > 127)
+							priority = 127;
+						curURL.setPriority((byte) priority);
+
+						try {
+							Thread.sleep(3000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						processPage(curURL);
+					}
 				}
 				return;
 			}
@@ -268,18 +294,36 @@ public class WebCrawler implements Runnable {
 					return;
 				}
 				curURL.setURL(fetchResult.getFetchedUrl());
-				curURL.setDocid(docIdServer.getNewDocID(fetchResult.getFetchedUrl()));
+				curURL.setDocid(docIdServer.getNewDocID(fetchResult
+						.getFetchedUrl()));
 			}
 
 			Page page = new Page(curURL);
 			int docid = curURL.getDocid();
-			if (fetchResult.fetchContent(page) && parser.parse(page, curURL.getURL())) {
+			if (fetchResult.fetchContent(page)
+					&& parser.parse(page, curURL.getURL())) {
 				ParseData parseData = page.getParseData();
-				if (parseData instanceof HtmlParseData) {
-					HtmlParseData htmlParseData = (HtmlParseData) parseData;
 
+				if (parseData instanceof HtmlParseData) {
+					/**
+					 * 检车url是否是一个页面的url，http://www.gddpf.org.cn/news/uploads/
+					 * uploads/content/Js/Js/uploads/uploads/linkImg/
+					 * 20110329130212625.jpg是一个图片的url，但是确实一个网页
+					 * 
+					 */
+					if (curURL
+							.getURL()
+							.toLowerCase()
+							.trim()
+							.matches(
+									".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?|ico))$")) {
+						return;
+					}
+
+					HtmlParseData htmlParseData = (HtmlParseData) parseData;
 					List<WebURL> toSchedule = new ArrayList<WebURL>();
-					int maxCrawlDepth = myController.getConfig().getMaxDepthOfCrawling();
+					int maxCrawlDepth = myController.getConfig()
+							.getMaxDepthOfCrawling();
 					for (WebURL webURL : htmlParseData.getOutgoingUrls()) {
 						webURL.setParentDocid(docid);
 						webURL.setParentUrl(curURL.getURL());
@@ -293,21 +337,62 @@ public class WebCrawler implements Runnable {
 						} else {
 							webURL.setDocid(-1);
 							webURL.setDepth((short) (curURL.getDepth() + 1));
-							if (maxCrawlDepth == -1 || curURL.getDepth() < maxCrawlDepth) {
-								if (shouldVisit(webURL) && robotstxtServer.allows(webURL)) {
-									webURL.setDocid(docIdServer.getNewDocID(webURL.getURL()));
+							if (maxCrawlDepth == -1
+									|| curURL.getDepth() < maxCrawlDepth) {
+								if (shouldVisit(webURL)
+										&& robotstxtServer.allows(webURL)) {
+									webURL.setDocid(docIdServer
+											.getNewDocID(webURL.getURL()));
 									toSchedule.add(webURL);
+//									System.out.println("should visit:\t"+webURL.getURL());
 								}
 							}
 						}
 					}
 					frontier.scheduleAll(toSchedule);
+				} else if (page.getContentType() != null) {
+					/**
+					 * 简单提取js css文件中的链接
+					 */
+					String contentType = page.getContentType();
+					if (contentType.contains("javascript")
+							|| contentType.contains("css")) {
+						List<WebURL> toSchedule = new ArrayList<WebURL>();
+					
+						int maxCrawlDepth = myController.getConfig()
+								.getMaxDepthOfCrawling();
+						for (WebURL webURL : ExtractLinks.getUrlFromJsCSS(page
+								.getParseData().toString(), page.getWebURL())) {
+							webURL.setParentDocid(docid);
+							webURL.setParentUrl(curURL.getURL());
+							int newdocid = docIdServer
+									.getDocId(webURL.getURL());
+							if (newdocid > 0) {
+								webURL.setDepth((short) -1);
+								webURL.setDocid(newdocid);
+							} else {
+								webURL.setDocid(-1);
+								webURL.setDepth((short) (curURL.getDepth() + 1));
+								if (maxCrawlDepth == -1
+										|| curURL.getDepth() < maxCrawlDepth) {
+									if (shouldVisit(webURL)
+											&& robotstxtServer.allows(webURL)) {
+										webURL.setDocid(docIdServer
+												.getNewDocID(webURL.getURL()));
+										toSchedule.add(webURL);
+									}
+								}
+							}
+						}
+						frontier.scheduleAll(toSchedule);
+					}
 				}
 				visit(page);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(e.getMessage() + ", while processing: " + curURL.getURL());
+			logger.error(e.getMessage() + ", while processing: "
+					+ curURL.getURL());
 		} finally {
 			if (fetchResult != null) {
 				fetchResult.discardContentIfNotConsumed();

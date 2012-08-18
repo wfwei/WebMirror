@@ -41,9 +41,15 @@ public class URLCanonicalizer {
 	}
 
 	public static String getCanonicalURL(String href, String context) {
+		/* 对href进行必要容错处理 MARK 链接中含有中括号会出错 */
+		href = href.trim().replace('\\', '/');
+		if (null != href && href.endsWith(";")) {
+			href = href.substring(0, href.length() - 1);
+		}
 
 		try {
-			URL canonicalURL = new URL(UrlResolver.resolveUrl(context == null ? "" : context, href));
+			URL canonicalURL = new URL(UrlResolver.resolveUrl(
+					context == null ? "" : context, href));
 
 			String path = canonicalURL.getPath();
 
@@ -75,12 +81,14 @@ public class URLCanonicalizer {
 			 */
 			path = path.trim();
 
-			final SortedMap<String, String> params = createParameterMap(canonicalURL.getQuery());
+			final SortedMap<String, String> params = createParameterMap(canonicalURL
+					.getQuery());
 			final String queryString;
 
 			if (params != null && params.size() > 0) {
 				String canonicalParams = canonicalize(params);
-				queryString = (canonicalParams.isEmpty() ? "" : "?" + canonicalParams);
+				queryString = (canonicalParams.isEmpty() ? "" : "?"
+						+ canonicalParams);
 			} else {
 				queryString = "";
 			}
@@ -109,7 +117,7 @@ public class URLCanonicalizer {
 
 			URL result = new URL(protocol, host, port, pathAndQueryString);
 			return result.toExternalForm();
-			
+
 		} catch (MalformedURLException ex) {
 			return null;
 		} catch (URISyntaxException ex) {
@@ -123,13 +131,15 @@ public class URLCanonicalizer {
 	 * 
 	 * @return Null if there is no query string.
 	 */
-	private static SortedMap<String, String> createParameterMap(final String queryString) {
+	private static SortedMap<String, String> createParameterMap(
+			final String queryString) {
 		if (queryString == null || queryString.isEmpty()) {
 			return null;
 		}
 
 		final String[] pairs = queryString.split("&");
-		final Map<String, String> params = new HashMap<String, String>(pairs.length);
+		final Map<String, String> params = new HashMap<String, String>(
+				pairs.length);
 
 		for (final String pair : pairs) {
 			if (pair.length() == 0) {
@@ -145,7 +155,7 @@ public class URLCanonicalizer {
 					params.put(tokens[0], "");
 				}
 				break;
-			case 2: 
+			case 2:
 				params.put(tokens[0], tokens[1]);
 				break;
 			}
@@ -160,7 +170,8 @@ public class URLCanonicalizer {
 	 *            Parameter name-value pairs in lexicographical order.
 	 * @return Canonical form of query string.
 	 */
-	private static String canonicalize(final SortedMap<String, String> sortedParamMap) {
+	private static String canonicalize(
+			final SortedMap<String, String> sortedParamMap) {
 		if (sortedParamMap == null || sortedParamMap.isEmpty()) {
 			return "";
 		}
@@ -168,7 +179,8 @@ public class URLCanonicalizer {
 		final StringBuffer sb = new StringBuffer(100);
 		for (Map.Entry<String, String> pair : sortedParamMap.entrySet()) {
 			final String key = pair.getKey().toLowerCase();
-			if (key.equals("jsessionid") || key.equals("phpsessid") || key.equals("aspsessionid")) {
+			if (key.equals("jsessionid") || key.equals("phpsessid")
+					|| key.equals("aspsessionid")) {
 				continue;
 			}
 			if (sb.length() > 0) {
@@ -197,7 +209,8 @@ public class URLCanonicalizer {
 			string = string.replace("+", "%2B");
 			string = URLDecoder.decode(string, "UTF-8");
 			string = URLEncoder.encode(string, "UTF-8");
-			return string.replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
+			return string.replace("+", "%20").replace("*", "%2A")
+					.replace("%7E", "~");
 		} catch (Exception e) {
 			return string;
 		}

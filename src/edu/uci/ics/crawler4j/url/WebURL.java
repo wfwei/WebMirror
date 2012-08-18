@@ -38,9 +38,12 @@ public class WebURL implements Serializable {
 	private int parentDocid;
 	private String parentUrl;
 	private short depth;
+	private int port;
 	private String domain;
 	private String subDomain;
 	private String path;
+	// not contain queries in short path
+	private String shortPath;
 	private String anchor;
 	private byte priority;
 
@@ -87,6 +90,22 @@ public class WebURL implements Serializable {
 		int domainStartIdx = url.indexOf("//") + 2;
 		int domainEndIdx = url.indexOf('/', domainStartIdx);
 		domain = url.substring(domainStartIdx, domainEndIdx);
+		/**
+		 * @author WangFengwei 添加端口支持
+		 */
+		if (domain.contains(":")) {
+			try {
+				port = Integer.parseInt(domain.substring(
+						domain.indexOf(':') + 1, domain.length()));
+			} catch (NumberFormatException nfe) {
+				nfe.printStackTrace();
+				// should not happen, if err use default 80
+				port = 80;
+			}
+			domain = domain.substring(0, domain.indexOf(':'));
+		} else {
+			port = 80;
+		}
 		subDomain = "";
 		String[] parts = domain.split("\\.");
 		if (parts.length > 2) {
@@ -103,12 +122,22 @@ public class WebURL implements Serializable {
 				subDomain += parts[i];
 			}
 		}
-		path = url.substring(domainEndIdx);
-		//TODO test @auth wfw
-//		int pathEndIdx = path.indexOf('?');
-//		if (pathEndIdx >= 0) {
-//			path = path.substring(0, pathEndIdx);
-//		}
+		/**
+		 * @author WangFengwei 判断域名是否是ip地址
+		 */
+		if ((subDomain + "." + domain)
+				.matches("((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)")) {
+			domain = subDomain + "." + domain;
+			subDomain = "";
+		}
+		/**
+		 * @author WangFengwei short path is path without queries
+		 */
+		shortPath = path = url.substring(domainEndIdx).replace('\\', '/');
+		int pathEndIdx = shortPath.indexOf('?');
+		if (pathEndIdx >= 0) {
+			shortPath = shortPath.substring(0, pathEndIdx);
+		}
 	}
 
 	/**
@@ -148,6 +177,14 @@ public class WebURL implements Serializable {
 		this.depth = depth;
 	}
 
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
 	/**
 	 * Returns the domain of this Url. For 'http://www.example.com/sample.htm',
 	 * domain will be 'example.com'
@@ -172,21 +209,29 @@ public class WebURL implements Serializable {
 		this.path = path;
 	}
 
+	public String getShortPath() {
+		return shortPath;
+	}
+
+	public void setShortPath(String shortPath) {
+		this.shortPath = shortPath;
+	}
+
 	/**
-	 * Returns the anchor string. For example, in <a href="example.com">A sample anchor</a>
-	 * the anchor string is 'A sample anchor'
+	 * Returns the anchor string. For example, in <a href="example.com">A sample
+	 * anchor</a> the anchor string is 'A sample anchor'
 	 */
 	public String getAnchor() {
 		return anchor;
 	}
-	
+
 	public void setAnchor(String anchor) {
 		this.anchor = anchor;
 	}
 
 	/**
-	 * Returns the priority for crawling this URL.
-	 * A lower number results in higher priority.
+	 * Returns the priority for crawling this URL. A lower number results in
+	 * higher priority.
 	 */
 	public byte getPriority() {
 		return priority;
@@ -196,5 +241,4 @@ public class WebURL implements Serializable {
 		this.priority = priority;
 	}
 
-	
 }

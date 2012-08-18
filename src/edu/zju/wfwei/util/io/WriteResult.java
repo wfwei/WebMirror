@@ -1,9 +1,7 @@
 package edu.zju.wfwei.util.io;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -88,7 +86,6 @@ public class WriteResult {
 			bs = "你好a ".getBytes("gb2312");
 			writeBytesToFile(bs, "d:/test.txt");
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
