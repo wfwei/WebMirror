@@ -102,14 +102,14 @@ public class UrlRel {
 
 		StringBuffer sb = new StringBuffer();
 		while (matchRes.find()) {
-//			System.out.println("regex\t" + regstr);
-//			for (int i = 0; i <= matchRes.groupCount(); i++) {
-//				System.out.println("group" + i + ":\t" + matchRes.group(i));
-//			}
+			// System.out.println("regex\t" + regstr);
+			// for (int i = 0; i <= matchRes.groupCount(); i++) {
+			// System.out.println("group" + i + ":\t" + matchRes.group(i));
+			// }
 			// curl是标准化后的url 地址中不得含有中括号 ExtractLinks中类似代码，当group(3)是空的时候如何处理
 			String curl = URLCanonicalizer.getCanonicalURL(matchRes.group(3)
 					.trim(), weburl.getURL());
-//			System.out.println("curl:\t" + curl);
+			// System.out.println("curl:\t" + curl);
 			WebURL cweburl = new WebURL();
 			String replacement = null;
 			if (curl != null && curl.startsWith("http://")) {

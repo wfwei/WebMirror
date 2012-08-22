@@ -41,9 +41,13 @@ public class URLCanonicalizer {
 	}
 
 	public static String getCanonicalURL(String href, String context) {
-		/* 对href进行必要容错处理 MARK 链接中含有中括号会出错 */
+		if (null == href || href.length() == 0 || !href.matches("[^()$]*")) {
+			/*过滤不合法的href*/
+			return null;
+		}
+		/* 对href进行必要容错处理 */
 		href = href.trim().replace('\\', '/');
-		if (null != href && href.endsWith(";")) {
+		if (href.endsWith(";")) {
 			href = href.substring(0, href.length() - 1);
 		}
 
