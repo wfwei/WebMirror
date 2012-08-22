@@ -278,7 +278,7 @@ public class WebCrawler implements Runnable {
 						curURL.setPriority((byte) priority);
 
 						try {
-							Thread.sleep(3000);
+							Thread.sleep(6000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
@@ -306,9 +306,9 @@ public class WebCrawler implements Runnable {
 
 				if (parseData instanceof HtmlParseData) {
 					/**
-					 * 检车url是否是一个页面的url，http://www.gddpf.org.cn/news/uploads/
+					 * 检查url是否是一个页面的url，http://www.gddpf.org.cn/news/uploads/
 					 * uploads/content/Js/Js/uploads/uploads/linkImg/
-					 * 20110329130212625.jpg是一个图片的url，但是确实一个网页
+					 * 20110329130212625.jpg是一个图片的url，但是却是一个网页
 					 * 
 					 */
 					if (curURL

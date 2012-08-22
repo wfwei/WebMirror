@@ -65,7 +65,7 @@ public class Parser extends Configurable {
 
 				if (page.getContentType().contains("javascript")
 						|| page.getContentType().contains("css")) {
-					// 解析js/css文件的编码，默认使用gb编码，所以可能有误
+					/* 解析js/css文件的编码，默认使用gb编码，所以可能有误 */
 					String defaultCharset = "gb2312";
 					Charset icharset = null;
 					String bContent = "";
@@ -129,7 +129,7 @@ public class Parser extends Configurable {
 		InputStream inputStream = null;
 		try {
 			inputStream = new ByteArrayInputStream(page.getContentData());
-			// 解析html，识别编码，提取链接,可以获取href="path/file"
+			/* 解析html，识别编码，提取链接,可以获取href="path/file" */
 			htmlParser.parse(inputStream, contentHandler, metadata,
 					parseContext);
 		} catch (Exception e) {
@@ -175,7 +175,7 @@ public class Parser extends Configurable {
 		for (ExtractedUrlAnchorPair jsLinkPair : (HashSet<ExtractedUrlAnchorPair>) ExtractLinks
 				.extractJsLinks(parseData.getHtml())) {
 			contentHandler.addOutgoingUrls(jsLinkPair);
-//			System.out.println(jsLinkPair.getAnchor());
+			// System.out.println(jsLinkPair.getAnchor());
 		}
 
 		List<WebURL> outgoingUrls = new ArrayList<WebURL>();
@@ -199,7 +199,7 @@ public class Parser extends Configurable {
 			if (!hrefWithoutProtocol.contains("javascript:")
 					&& !hrefWithoutProtocol.contains("@")) {
 				String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
-//				System.out.println("canonical url:\t"+url);
+				// System.out.println("canonical url:\t"+url);
 				if (url != null) {
 					WebURL webURL = new WebURL();
 					webURL.setURL(url);

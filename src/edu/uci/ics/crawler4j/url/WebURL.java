@@ -89,6 +89,9 @@ public class WebURL implements Serializable {
 
 		int domainStartIdx = url.indexOf("//") + 2;
 		int domainEndIdx = url.indexOf('/', domainStartIdx);
+		// fixbug mailto:QQ3214213 TODO 不知道这样有没有什么影响
+		if (domainStartIdx >= domainEndIdx)
+			return;
 		domain = url.substring(domainStartIdx, domainEndIdx);
 		/**
 		 * @author WangFengwei 添加端口支持

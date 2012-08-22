@@ -37,8 +37,12 @@ public class UrlRel {
 			if (idx > 0)
 				supdirs += "../";
 		}
-		// 找到所有连接
-		String regstr = "((href|src)\\s*=\\s*['\"]?\\s*)([^\\s'\">]*)([\\s'\">])";
+		// MARK 找到html中所有链接的正则表达式
+		/*
+		 * script中的形式会导致问题: ga.src = ('https:' == document.location.protocol ?
+		 * 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		 */
+		String regstr = "((href|src)\\s*=\\s*['\"]\\s*)([^\\s'\">]*)([\\s'\">])";
 		Pattern urlFilter = Pattern.compile(regstr, Pattern.CASE_INSENSITIVE);
 		Matcher matchRes = urlFilter.matcher(rHtml);
 
@@ -75,6 +79,14 @@ public class UrlRel {
 		return sb.toString();
 	}
 
+	/**
+	 * TODO 链接重定向的地址不能为相对地址，相对的地址在不断变化。。。
+	 * 
+	 * @param content
+	 * @param weburl
+	 * @param validPath
+	 * @return
+	 */
 	public static String redirectUrlsInJs(String content, WebURL weburl,
 			String validPath) {
 		String supdirs = "./";
@@ -94,9 +106,10 @@ public class UrlRel {
 //			for (int i = 0; i <= matchRes.groupCount(); i++) {
 //				System.out.println("group" + i + ":\t" + matchRes.group(i));
 //			}
-			// curl是标准化后的url 地址中不得含有中括号 ExtractLinks中类似代码
+			// curl是标准化后的url 地址中不得含有中括号 ExtractLinks中类似代码，当group(3)是空的时候如何处理
 			String curl = URLCanonicalizer.getCanonicalURL(matchRes.group(3)
 					.trim(), weburl.getURL());
+//			System.out.println("curl:\t" + curl);
 			WebURL cweburl = new WebURL();
 			String replacement = null;
 			if (curl != null && curl.startsWith("http://")) {
@@ -132,8 +145,8 @@ public class UrlRel {
 			if (idx > 0)
 				supdirs += "../";
 		}
-		// 找到所有连接
-		String regstr = "(url\\s*[(])([^)]*)([)])";
+		// url('/images/email.png_WH_1331724647')
+		String regstr = "(url\\s*[(]['\"]?)([^)'\"]*)(['\"]?[)])";
 		Pattern urlFilter = Pattern.compile(regstr, Pattern.CASE_INSENSITIVE);
 		Matcher matchRes = urlFilter.matcher(content);
 
@@ -218,8 +231,8 @@ public class UrlRel {
 	}
 
 	/**
-	 * 将str中的:?*"<>|\8个符号进行替换
-	 * MARK 使用特殊字符要注意，开始用的是#号，但是#出现在url中会以数字代替，就是一个bug
+	 * 将str中的:?*"<>|\8个符号进行替换 MARK 使用特殊字符要注意，开始用的是#号，但是#出现在url中会以数字代替，就是一个bug
+	 * 
 	 * @param str
 	 * @return
 	 */

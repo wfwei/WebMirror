@@ -24,13 +24,13 @@ public class ExtractLinks {
 	public static HashSet<ExtractedUrlAnchorPair> extractJsLinks(String rHtml) {
 		HashSet<ExtractedUrlAnchorPair> jslinks = new HashSet<ExtractedUrlAnchorPair>();
 
-		String regex = "<script([^>]+)src=\"([^\"]+)\"";
+		// MARK 提取script的src的正则表达式
+		String regex = "<script([^>]+)src\\s*=\\s*['\"]([^'\"]+)['\"]";
 		Pattern urlFilter = Pattern.compile(regex);
 		Matcher matchRes = urlFilter.matcher(rHtml);
 
 		while (matchRes.find()) {
-			// checking
-			// System.out.println(matchRes.group(2));
+//			System.out.println(matchRes.group(2));
 			ExtractedUrlAnchorPair jsPair = new ExtractedUrlAnchorPair();
 			jsPair.setAnchor(matchRes.group(2));
 			jsPair.setHref(matchRes.group(2));

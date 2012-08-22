@@ -26,6 +26,10 @@ public class WriteResult {
 	public static synchronized void writeIdxFile(String localPath, String url,
 			String destination) {
 		String filetype = localPath.substring(localPath.lastIndexOf('.') + 1);
+		// aspx_WH_EMailType=0这种网页会认为是aspx
+		if (filetype.contains("_")) {
+			filetype = filetype.substring(0, filetype.indexOf('_'));
+		}
 		String data = localPath + "\t" + url + "\n";
 		destination += "/" + filetype + ".idx";
 		createParentFolders(destination);
