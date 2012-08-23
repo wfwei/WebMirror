@@ -37,7 +37,6 @@ public class UrlRel {
 			if (idx > 0)
 				supdirs += "../";
 		}
-		// MARK 找到html中所有链接的正则表达式
 		/*
 		 * script中的形式会导致问题: ga.src = ('https:' == document.location.protocol ?
 		 * 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
@@ -47,14 +46,18 @@ public class UrlRel {
 		Matcher matchRes = urlFilter.matcher(rHtml);
 
 		StringBuffer sb = new StringBuffer();
+		String wholeMatch = null, urlMatch = null, preMatch = null, postMatch = null;
 		while (matchRes.find()) {
-			// System.out.println("regex\t" + regstr);
-			// for (int i = 0; i <= matchRes.groupCount(); i++) {
-			// System.out.println("group" + i + ":\t" + matchRes.group(i));
-			// }
+			wholeMatch = matchRes.group(0);
+			urlMatch = matchRes.group(3);
+			preMatch = matchRes.group(1);
+			postMatch = matchRes.group(4);
+			// for test
+			// System.out.println("regex\t" + regstr + "\t\turlMatch:  "
+			// + urlMatch);
 			// curl是标准化后的url 地址中不得含有中括号 ExtractLinks中类似代码
-			String curl = URLCanonicalizer.getCanonicalURL(matchRes.group(3)
-					.trim(), weburl.getURL());
+			String curl = URLCanonicalizer.getCanonicalURL(urlMatch.trim(),
+					weburl.getURL());
 			WebURL cweburl = new WebURL();
 			if (curl != null && curl.startsWith("http://")) {
 				cweburl.setURL(curl);
@@ -62,25 +65,28 @@ public class UrlRel {
 				/* 匹配到的链接不规范，忽略之 */
 				cweburl.setURL("http://www.fakeUrl.com/");
 				Debug.checkLogger.debug("curl不规范：\t" + curl + "\t<--\t"
-						+ matchRes.group(3));
+						+ urlMatch);
 			}
 			/* 判断是否redirect */
+			String replacement = null;
 			if (shouldRedirect(cweburl, weburl)) {
 				String locRelPath = getFullValidDomain(cweburl)
 						+ appendFileToPath(cweburl.getPath());
-
-				matchRes.appendReplacement(sb, matchRes.group(1) + supdirs
-						+ "../" + locRelPath + matchRes.group(4));
+				replacement = preMatch + supdirs + "../" + locRelPath
+						+ postMatch;
 			} else {
-				matchRes.appendReplacement(sb, matchRes.group());
+				replacement = wholeMatch;
 			}
+			/* MARK 使用Matcher.quoteRepalcement()过滤特殊字符 */
+			matchRes.appendReplacement(sb,
+					Matcher.quoteReplacement(replacement));
 		}
 		matchRes.appendTail(sb);
 		return sb.toString();
 	}
 
 	/**
-	 * TODO 链接重定向的地址不能为相对地址，相对的地址在不断变化。。。
+	 * 重定向js文件中的链接到本地资源，由于js可被嵌入到不同的html中，所以其中的写url操作需要用绝对地址
 	 * 
 	 * @param content
 	 * @param weburl
@@ -89,26 +95,27 @@ public class UrlRel {
 	 */
 	public static String redirectUrlsInJs(String content, WebURL weburl,
 			String validPath) {
-		String supdirs = "./";
-		int idx = -1;
-		while ((idx = validPath.indexOf('/', idx + 1)) != -1) {
-			if (idx > 0)
-				supdirs += "../";
-		}
-		// 找到所有连接
+		String snapshotPageDir = Config.getSnapshotPage();
+		// test http://www.gsdpf.org.cn/wza2012/script/headerwrite.js
 		String regstr = "((href|src)\\s*=\\s*[\\\\]?['\"]?\\s*)([^\\s'\">\\\\]*)([\\s'\">\\\\]{2}?)";
 		Pattern urlFilter = Pattern.compile(regstr, Pattern.CASE_INSENSITIVE);
 		Matcher matchRes = urlFilter.matcher(content);
 
 		StringBuffer sb = new StringBuffer();
+		String wholeMatch = null, urlMatch = null, preMatch = null, postMatch = null;
+
 		while (matchRes.find()) {
-			// System.out.println("regex\t" + regstr);
-			// for (int i = 0; i <= matchRes.groupCount(); i++) {
-			// System.out.println("group" + i + ":\t" + matchRes.group(i));
-			// }
-			// curl是标准化后的url 地址中不得含有中括号 ExtractLinks中类似代码，当group(3)是空的时候如何处理
-			String curl = URLCanonicalizer.getCanonicalURL(matchRes.group(3)
-					.trim(), weburl.getURL());
+			wholeMatch = matchRes.group(0);
+			urlMatch = matchRes.group(3);
+			preMatch = matchRes.group(1);
+			postMatch = matchRes.group(4);
+			// for test
+			// System.out.println("regex\t" + regstr + "\t\turlMatch:  "
+			// + urlMatch);
+
+			// curl是标准化后的url ExtractLinks中类似代码
+			String curl = URLCanonicalizer.getCanonicalURL(urlMatch.trim(),
+					weburl.getURL());
 			// System.out.println("curl:\t" + curl);
 			WebURL cweburl = new WebURL();
 			String replacement = null;
@@ -118,20 +125,19 @@ public class UrlRel {
 				/* 匹配到的链接不规范，忽略之 */
 				cweburl.setURL("http://www.fakeUrl.com/");
 				Debug.checkLogger.debug("curl不规范：\t" + curl + "\t<--\t"
-						+ matchRes.group(3));
+						+ urlMatch);
 			}
 			/* 判断是否redirect */
 			if (shouldRedirect(cweburl, weburl)) {
 				String locRelPath = getFullValidDomain(cweburl)
 						+ appendFileToPath(cweburl.getPath());
-				replacement = matchRes.group(1) + supdirs + "../" + locRelPath
-						+ matchRes.group(4);
+				replacement = preMatch + snapshotPageDir + locRelPath
+						+ postMatch;
 			} else {
-				replacement = matchRes.group();
+				replacement = wholeMatch;
 			}
-			// MARK 四个反斜杠，我擦
 			matchRes.appendReplacement(sb,
-					replacement.replaceAll("\\\\", "\\\\\\\\"));
+					Matcher.quoteReplacement(replacement));
 		}
 		matchRes.appendTail(sb);
 		return sb.toString();
@@ -151,14 +157,19 @@ public class UrlRel {
 		Matcher matchRes = urlFilter.matcher(content);
 
 		StringBuffer sb = new StringBuffer();
+		String wholeMatch = null, urlMatch = null, preMatch = null, postMatch = null;
+
 		while (matchRes.find()) {
-			// System.out.println("regex\t" + regstr);
-			// for (int i = 0; i <= matchRes.groupCount(); i++) {
-			// System.out.println("group" + i + ":\t" + matchRes.group(i));
-			// }
-			// curl是标准化后的url 地址中不得含有中括号 ExtractLinks中类似代码
-			String curl = URLCanonicalizer.getCanonicalURL(matchRes.group(2)
-					.trim(), weburl.getURL());
+			wholeMatch = matchRes.group(0);
+			urlMatch = matchRes.group(2);
+			preMatch = matchRes.group(1);
+			postMatch = matchRes.group(3);
+			// for test
+			// System.out.println("regex\t" + regstr + "\t\turlMatch:  "
+			// + urlMatch);
+			String curl = URLCanonicalizer.getCanonicalURL(urlMatch.trim(),
+					weburl.getURL());
+
 			WebURL cweburl = new WebURL();
 			if (curl != null && curl.startsWith("http://")) {
 				cweburl.setURL(curl);
@@ -166,18 +177,20 @@ public class UrlRel {
 				/* 匹配到的链接不规范，忽略之 */
 				cweburl.setURL("http://www.fakeUrl.com/");
 				Debug.checkLogger.debug("curl不规范：\t" + curl + "\t<--\t"
-						+ matchRes.group(1));
+						+ urlMatch);
 			}
 			/* 判断是否redirect */
+			String replacement = null;
 			if (shouldRedirect(cweburl, weburl)) {
 				String locRelPath = getFullValidDomain(cweburl)
 						+ appendFileToPath(cweburl.getPath());
-
-				matchRes.appendReplacement(sb, matchRes.group(1) + supdirs
-						+ "../" + locRelPath + matchRes.group(3));
+				replacement = preMatch + supdirs + "../" + locRelPath
+						+ postMatch;
 			} else {
-				matchRes.appendReplacement(sb, matchRes.group());
+				replacement = wholeMatch;
 			}
+			matchRes.appendReplacement(sb,
+					Matcher.quoteReplacement(replacement));
 		}
 		matchRes.appendTail(sb);
 		return sb.toString();

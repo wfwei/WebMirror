@@ -57,12 +57,12 @@ public class ExtractLinks {
 	public static WebURL[] getUrlFromJsCSS(String content, WebURL contextUrl) {
 		ArrayList<WebURL> outGoingUrls = new ArrayList<WebURL>();
 		String regex_js = "((href|src)\\s*=\\s*[\\\\]?['\"]?\\s*)([^\\s'\">\\\\]*)([\\s'\">\\\\])";
-		String regex_css = "url\\s*[(]([^)]*)[)]";
+		String regex_css = "(url\\s*[(]['\"]?)([^)'\"]*)(['\"]?[)])";
 		String regex = null;
 		int group_id = 0;
 		if (contextUrl.getURL().contains(".css")) {
 			regex = regex_css;
-			group_id = 1;
+			group_id = 2;
 		} else {
 			regex = regex_js;
 			group_id = 3;

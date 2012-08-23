@@ -42,7 +42,6 @@ public class SnapshotCrawlController {
 		} catch (Exception e) {
 			logger.error("fail to start snapshotcrawler");
 		}
-
 	}
 
 	public static void main(String[] args) throws Exception {

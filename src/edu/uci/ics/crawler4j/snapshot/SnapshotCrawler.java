@@ -147,8 +147,8 @@ public class SnapshotCrawler extends WebCrawler {
 		} else if (page.getContentType().contains("image")) {
 			// 包括image/png;image/jpeg等等
 			if (!page.getWebURL().getURL().toLowerCase()
-					.matches(".*(\\.(bmp|gif|jpe?g|png|tiff?|ico))$")) {
-				// 不保存不正常的图片
+					.matches(".*(\\.(bmp|gif|jpe?g|png|tiff?|ico)).*")) {
+				// 不保存不正常的图片，但是http://www.wrfrwrrr.com/images/line-tile.png?1331724647属于正常图片
 				logger.warn("跳过\t" + page.getContentType() + "\t"
 						+ page.getWebURL().getURL());
 				return;
