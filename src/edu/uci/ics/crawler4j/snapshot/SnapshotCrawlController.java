@@ -25,8 +25,10 @@ public class SnapshotCrawlController {
 		config.setCrawlStorageFolder(Config.getSnapshotRoot());
 		config.setMaxDepthOfCrawling(Config.getMaxDepth());
 		config.setPolitenessDelay(Config.getPolitenessDelay());
-		config.setIncludeBinaryContentInCrawling(true);
-
+		config.setIncludeBinaryContentInCrawling(Config.isIncludeBinaryContentInCrawling());
+		config.setLoginPosturl(Config.getLoginPostUrl());
+		config.setLoginPostParas(Config.getLoginPostParas());
+		
 		PageFetcher pageFetcher = new PageFetcher(config);
 		RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
 		robotstxtConfig.setEnabled(Config.isRobotsEnabled());

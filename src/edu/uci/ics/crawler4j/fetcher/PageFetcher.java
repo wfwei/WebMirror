@@ -19,7 +19,9 @@ package edu.uci.ics.crawler4j.fetcher;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
@@ -31,10 +33,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -43,6 +48,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
@@ -82,58 +88,96 @@ public class PageFetcher extends Configurable {
 		paramsBean.setContentCharset("UTF-8");
 		paramsBean.setUseExpectContinue(false);
 
-		params.setParameter(CoreProtocolPNames.USER_AGENT, config.getUserAgentString());
-		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.getSocketTimeout());
-		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.getConnectionTimeout());
+		params.setParameter(CoreProtocolPNames.USER_AGENT,
+				config.getUserAgentString());
+		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
+				config.getSocketTimeout());
+		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,
+				config.getConnectionTimeout());
 
 		params.setBooleanParameter("http.protocol.handle-redirects", false);
 
 		SchemeRegistry schemeRegistry = new SchemeRegistry();
-		schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+		schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory
+				.getSocketFactory()));
 
 		if (config.isIncludeHttpsPages()) {
-			schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
+			schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory
+					.getSocketFactory()));
 		}
 
 		connectionManager = new ThreadSafeClientConnManager(schemeRegistry);
 		connectionManager.setMaxTotal(config.getMaxTotalConnections());
-		connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
+		connectionManager.setDefaultMaxPerRoute(config
+				.getMaxConnectionsPerHost());
 		httpClient = new DefaultHttpClient(connectionManager, params);
 
 		if (config.getProxyHost() != null) {
 
 			if (config.getProxyUsername() != null) {
-				httpClient.getCredentialsProvider().setCredentials(
-						new AuthScope(config.getProxyHost(), config.getProxyPort()),
-						new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword()));
+				httpClient.getCredentialsProvider()
+						.setCredentials(
+								new AuthScope(config.getProxyHost(),
+										config.getProxyPort()),
+								new UsernamePasswordCredentials(config
+										.getProxyUsername(), config
+										.getProxyPassword()));
 			}
 
-			HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
-			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        }
+			HttpHost proxy = new HttpHost(config.getProxyHost(),
+					config.getProxyPort());
+			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,
+					proxy);
+		}
+		if (config.getLoginPosturl() != null
+				&& config.getLoginPostParas() != null) {
+			try {
+				HttpPost post = new HttpPost(config.getLoginPosturl());
+				// 设置需要提交的参数
+				List<NameValuePair> paras = new ArrayList<NameValuePair>();
+				String paras_str = config.getLoginPostParas();
+				String[] para_array = paras_str.split(";");
+				for (String pair : para_array) {
+					if (pair != null && pair.contains(":")) {
+						String[] key_value = pair.split(":");
+						paras.add(new BasicNameValuePair(key_value[0].trim(),
+								key_value[1].trim()));
+					}
 
-        httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
+				}
+				post.setEntity(new UrlEncodedFormEntity(paras, "utf-8"));
+				httpClient.execute(post);
+				post.abort();
+			} catch (Exception e) {
+				logger.warn("login error:\t" + e.toString());
+			}
 
-            @Override
-            public void process(final HttpResponse response, final HttpContext context) throws HttpException,
-                    IOException {
-                HttpEntity entity = response.getEntity();
-                Header contentEncoding = entity.getContentEncoding();
-                if (contentEncoding != null) {
-                    HeaderElement[] codecs = contentEncoding.getElements();
-                    for (HeaderElement codec : codecs) {
-                        if (codec.getName().equalsIgnoreCase("gzip")) {
-                            response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-                            return;
-                        }
-                    }
-                }
-            }
+		}
+		httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
 
-        });
+			@Override
+			public void process(final HttpResponse response,
+					final HttpContext context) throws HttpException,
+					IOException {
+				HttpEntity entity = response.getEntity();
+				Header contentEncoding = entity.getContentEncoding();
+				if (contentEncoding != null) {
+					HeaderElement[] codecs = contentEncoding.getElements();
+					for (HeaderElement codec : codecs) {
+						if (codec.getName().equalsIgnoreCase("gzip")) {
+							response.setEntity(new GzipDecompressingEntity(
+									response.getEntity()));
+							return;
+						}
+					}
+				}
+			}
+
+		});
 
 		if (connectionMonitorThread == null) {
-			connectionMonitorThread = new IdleConnectionMonitorThread(connectionManager);
+			connectionMonitorThread = new IdleConnectionMonitorThread(
+					connectionManager);
 		}
 		connectionMonitorThread.start();
 
@@ -148,7 +192,8 @@ public class PageFetcher extends Configurable {
 			synchronized (mutex) {
 				long now = (new Date()).getTime();
 				if (now - lastFetchTime < config.getPolitenessDelay()) {
-					Thread.sleep(config.getPolitenessDelay() - (now - lastFetchTime));
+					Thread.sleep(config.getPolitenessDelay()
+							- (now - lastFetchTime));
 				}
 				lastFetchTime = (new Date()).getTime();
 			}
@@ -159,19 +204,24 @@ public class PageFetcher extends Configurable {
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HttpStatus.SC_OK) {
 				if (statusCode != HttpStatus.SC_NOT_FOUND) {
-					if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
+					if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY
+							|| statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
 						Header header = response.getFirstHeader("Location");
 						if (header != null) {
 							String movedToUrl = header.getValue();
-							movedToUrl = URLCanonicalizer.getCanonicalURL(movedToUrl, toFetchURL);
+							movedToUrl = URLCanonicalizer.getCanonicalURL(
+									movedToUrl, toFetchURL);
 							fetchResult.setMovedToUrl(movedToUrl);
-						} 
+						}
 						fetchResult.setStatusCode(statusCode);
 						return fetchResult;
 					}
-					logger.info("Failed: " + response.getStatusLine().toString() + ", while fetching " + toFetchURL);
+					logger.info("Failed: "
+							+ response.getStatusLine().toString()
+							+ ", while fetching " + toFetchURL);
 				}
-				fetchResult.setStatusCode(response.getStatusLine().getStatusCode());
+				fetchResult.setStatusCode(response.getStatusLine()
+						.getStatusCode());
 				return fetchResult;
 			}
 
@@ -208,8 +258,9 @@ public class PageFetcher extends Configurable {
 				get.abort();
 			}
 		} catch (IOException e) {
-			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
-					+ " (link found in doc #" + webUrl.getParentDocid() + ")");
+			logger.error("Fatal transport error: " + e.getMessage()
+					+ " while fetching " + toFetchURL + " (link found in doc #"
+					+ webUrl.getParentDocid() + ")");
 			fetchResult.setStatusCode(CustomFetchStatus.FatalTransportError);
 			return fetchResult;
 		} catch (IllegalStateException e) {
@@ -219,7 +270,8 @@ public class PageFetcher extends Configurable {
 			if (e.getMessage() == null) {
 				logger.error("Error while fetching " + webUrl.getURL());
 			} else {
-				logger.error(e.getMessage() + " while fetching " + webUrl.getURL());
+				logger.error(e.getMessage() + " while fetching "
+						+ webUrl.getURL());
 			}
 		} finally {
 			try {
@@ -240,7 +292,7 @@ public class PageFetcher extends Configurable {
 			connectionMonitorThread.shutdown();
 		}
 	}
-	
+
 	public HttpClient getHttpClient() {
 		return httpClient;
 	}
@@ -252,7 +304,8 @@ public class PageFetcher extends Configurable {
 		}
 
 		@Override
-		public InputStream getContent() throws IOException, IllegalStateException {
+		public InputStream getContent() throws IOException,
+				IllegalStateException {
 
 			// the wrapped entity's getContent() decides about repeatability
 			InputStream wrappedin = wrappedEntity.getContent();

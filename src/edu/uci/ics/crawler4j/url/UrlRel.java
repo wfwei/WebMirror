@@ -59,7 +59,7 @@ public class UrlRel {
 			String curl = URLCanonicalizer.getCanonicalURL(urlMatch.trim(),
 					weburl.getURL());
 			WebURL cweburl = new WebURL();
-			if (curl != null && curl.startsWith("http://")) {
+			if (curl != null) {
 				cweburl.setURL(curl);
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
@@ -119,7 +119,7 @@ public class UrlRel {
 			// System.out.println("curl:\t" + curl);
 			WebURL cweburl = new WebURL();
 			String replacement = null;
-			if (curl != null && curl.startsWith("http://")) {
+			if (curl != null) {
 				cweburl.setURL(curl);
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
@@ -171,7 +171,7 @@ public class UrlRel {
 					weburl.getURL());
 
 			WebURL cweburl = new WebURL();
-			if (curl != null && curl.startsWith("http://")) {
+			if (curl != null) {
 				cweburl.setURL(curl);
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
