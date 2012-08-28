@@ -20,6 +20,7 @@ public class SnapshotCrawlController {
 
 	public static void runCrawler() {
 		Config.configFromFile();
+		Config.rmResFile();
 		
 		CrawlConfig config = new CrawlConfig();
 		config.setCrawlStorageFolder(Config.getSnapshotRoot());

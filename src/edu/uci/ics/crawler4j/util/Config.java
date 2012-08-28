@@ -48,14 +48,13 @@ public class Config {
 					"include_binary_content_in_in_crawling").contains("true");
 			loginPostUrl = prop.getProperty("login_post_url");
 			loginPostParas = prop.getProperty("login_post_paras");
-			rmResFile();
 			is.close();
 		} catch (Exception e) {
 			logger.warn("fail to load crawler4j.properties!");
 		}
 	}
 
-	private static void rmResFile() {
+	public static void rmResFile() {
 		String fullValidDomain = UrlRel.getFullValidDomain(crawlURL);
 		DeleteFileOrDir.delete(snapshotIndex + fullValidDomain);
 	}

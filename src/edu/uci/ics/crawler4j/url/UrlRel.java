@@ -17,7 +17,7 @@ public class UrlRel {
 			Pattern.CASE_INSENSITIVE);
 
 	/**
-	 * 对html文件中的url进行重定向，使其指向本地资源
+	 * 对html文件中的url进行重定向，使其指向本地资源 TODO 把swf定向到非本地的绝对路径，可以系列reconstructure一下
 	 * 
 	 * @param rHtml
 	 *            待修改的网页源码
