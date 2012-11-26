@@ -129,6 +129,7 @@ public class PageFetcher extends Configurable {
 			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,
 					proxy);
 		}
+		/*登陆模块 @author wangfengwei*/
 		if (config.getLoginPosturl() != null
 				&& config.getLoginPostParas() != null) {
 			try {

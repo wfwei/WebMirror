@@ -29,6 +29,7 @@ public class SnapshotCrawlController {
 		config.setIncludeBinaryContentInCrawling(Config.isIncludeBinaryContentInCrawling());
 		config.setLoginPosturl(Config.getLoginPostUrl());
 		config.setLoginPostParas(Config.getLoginPostParas());
+		config.setResumableCrawling(Config.isResumableCrawling());
 		
 		PageFetcher pageFetcher = new PageFetcher(config);
 		RobotstxtConfig robotstxtConfig = new RobotstxtConfig();

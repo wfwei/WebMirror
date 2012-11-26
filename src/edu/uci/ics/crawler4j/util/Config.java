@@ -23,6 +23,7 @@ public class Config {
 	private static boolean includeBinaryContentInCrawling = true;
 	private static String loginPostUrl = null;
 	private static String loginPostParas = null;
+	private static boolean resumableCrawling = false;
 	private static Logger logger = Logger.getLogger(Config.class);
 
 	public static void configFromFile() {
@@ -48,6 +49,7 @@ public class Config {
 					"include_binary_content_in_in_crawling").contains("true");
 			loginPostUrl = prop.getProperty("login_post_url");
 			loginPostParas = prop.getProperty("login_post_paras");
+			resumableCrawling = prop.getProperty("resumableCrawling").contains("true");
 			is.close();
 		} catch (Exception e) {
 			logger.warn("fail to load crawler4j.properties!");
@@ -162,5 +164,13 @@ public class Config {
 
 	public static void setSnapshotIndex(String snapshotIndex) {
 		Config.snapshotIndex = snapshotIndex;
+	}
+
+	public static boolean isResumableCrawling() {
+		return resumableCrawling;
+	}
+
+	public static void setResumableCrawling(boolean resumableCrawling) {
+		Config.resumableCrawling = resumableCrawling;
 	}
 }
