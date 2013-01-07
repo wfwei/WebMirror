@@ -20,34 +20,30 @@ public class Config {
 	private static WebURL crawlURL = new WebURL();
 	private static boolean crossSubDomains = true;
 	private static boolean crossPorts = true;
-	private static boolean includeBinaryContentInCrawling = true;
-	private static String loginPostUrl = null;
-	private static String loginPostParas = null;
 	private static Logger logger = Logger.getLogger(Config.class);
 
 	public static void configFromFile() {
 		InputStream is;
 		try {
-			is = Config.class.getResourceAsStream("/crawler4j.properties");
+			is = Config.class
+					.getResourceAsStream("/crawler4j.properties");
 			Properties prop = new Properties();
 			prop.load(is);
-			numberOfCrawlers = Integer.parseInt(prop
-					.getProperty("num_of_crawlers"));
-			snapshotRoot = prop.getProperty("snapshot_root");
-			snapshotPage = prop.getProperty("snapshot_page");
-			snapshotIndex = prop.getProperty("snapshot_index");
-			crawlURL.setURL(prop.getProperty("crawl_domains"));
-			maxDepth = Integer.parseInt(prop.getProperty("max_depth"));
-			politenessDelay = Integer.parseInt(prop
-					.getProperty("politeness_delay"));
-			robotsEnabled = prop.getProperty("robots_status").contains("true");
-			crossSubDomains = prop.getProperty("cross_sub_domains").contains(
-					"true");
-			crossPorts = prop.getProperty("cross_ports").contains("true");
-			includeBinaryContentInCrawling = prop.getProperty(
-					"include_binary_content_in_in_crawling").contains("true");
-			loginPostUrl = prop.getProperty("login_post_url");
-			loginPostParas = prop.getProperty("login_post_paras");
+			numberOfCrawlers = Integer.parseInt(prop.getProperty(
+					"num_of_crawlers").trim());
+			snapshotRoot = prop.getProperty("snapshot_root").trim();
+			snapshotPage = prop.getProperty("snapshot_page").trim();
+			snapshotIndex = prop.getProperty("snapshot_index").trim();
+			crawlURL.setURL(prop.getProperty("crawl_domains").trim());
+			maxDepth = Integer.parseInt(prop.getProperty("max_depth").trim());
+			politenessDelay = Integer.parseInt(prop.getProperty(
+					"politeness_delay").trim());
+			robotsEnabled = prop.getProperty("robots_status").trim()
+					.contains("true");
+			crossSubDomains = prop.getProperty("cross_sub_domains").trim()
+					.contains("true");
+			crossPorts = prop.getProperty("cross_ports").trim()
+					.contains("true");
 			rmResFile();
 			is.close();
 		} catch (Exception e) {
@@ -114,31 +110,6 @@ public class Config {
 
 	public static void setCrossPorts(boolean crossPorts) {
 		Config.crossPorts = crossPorts;
-	}
-
-	public static boolean isIncludeBinaryContentInCrawling() {
-		return includeBinaryContentInCrawling;
-	}
-
-	public static void setIncludeBinaryContentInCrawling(
-			boolean includeBinaryContentInCrawling) {
-		Config.includeBinaryContentInCrawling = includeBinaryContentInCrawling;
-	}
-
-	public static String getLoginPostUrl() {
-		return loginPostUrl;
-	}
-
-	public static void setLoginPostUrl(String loginPostUrl) {
-		Config.loginPostUrl = loginPostUrl;
-	}
-
-	public static String getLoginPostParas() {
-		return loginPostParas;
-	}
-
-	public static void setLoginPostParas(String loginPostParas) {
-		Config.loginPostParas = loginPostParas;
 	}
 
 	public static String getSnapshotPage() {
