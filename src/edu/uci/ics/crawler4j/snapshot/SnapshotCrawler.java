@@ -11,7 +11,6 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.UrlRel;
 import edu.uci.ics.crawler4j.url.WebURL;
-import edu.uci.ics.crawler4j.util.Config;
 import edu.uci.ics.crawler4j.util.io.WriteResult;
 
 public class SnapshotCrawler extends WebCrawler {
@@ -23,10 +22,6 @@ public class SnapshotCrawler extends WebCrawler {
 	private static final Pattern staticFilePatterns = Pattern.compile(
 			".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?|ico))$",
 			Pattern.CASE_INSENSITIVE);
-
-	private static WebURL crawlURL = Config.getCrawlURL();
-	private static String snapshotPage = Config.getSnapshotPage();
-	private static String snapshotIndex = Config.getSnapshotIndex();
 
 	private static Logger logger = Logger.getLogger(SnapshotCrawler.class);
 
@@ -61,17 +56,21 @@ public class SnapshotCrawler extends WebCrawler {
 		}
 
 		// sub domain
-		if (!Config.isCrossSubDomains()
-				&& !url.getSubDomain().equals(crawlURL.getSubDomain())) {
+		if (!SnapshotConfig.getConf().isCrossSubDomains()
+				&& !url.getSubDomain().equals(
+						SnapshotConfig.getConf().getCrawlURL().getSubDomain())) {
 			return false;
 		}
 
 		// port
-		if (!Config.isCrossPorts() && url.getPort() != crawlURL.getPort()) {
+		if (!SnapshotConfig.getConf().isCrossPorts()
+				&& url.getPort() != SnapshotConfig.getConf().getCrawlURL()
+						.getPort()) {
 			return false;
 		}
 
-		if (url.getDomain().equals(crawlURL.getDomain())) {
+		if (url.getDomain().equals(
+				SnapshotConfig.getConf().getCrawlURL().getDomain())) {
 			return true;
 		}
 		return false;
@@ -84,7 +83,8 @@ public class SnapshotCrawler extends WebCrawler {
 
 		String fullValidDomain = UrlRel.getFullValidDomain(weburl);
 		String validPath = UrlRel.appendFileToPath(weburl.getPath());
-		String fullLocPath = snapshotPage + "/" + fullValidDomain + validPath;
+		String fullLocPath = SnapshotConfig.getConf().getSnapshotPage() + "/"
+				+ fullValidDomain + validPath;
 		// logger.info("FullLocPath:" + fullLocPath);
 
 		if (page.getContentType() == null) {
@@ -164,8 +164,8 @@ public class SnapshotCrawler extends WebCrawler {
 		}
 
 		/* 写文件系统，但是前面有跳过部分文件，这样html中重定向的链接将会失效 */
-		WriteResult.writeIdxFile(fullLocPath, weburl.getURL(), snapshotIndex
-				+ fullValidDomain + "/");
+		WriteResult.writeIdxFile(fullLocPath, weburl.getURL(), SnapshotConfig
+				.getConf().getSnapshotIndex() + fullValidDomain + "/");
 		WriteResult.writeBytesToFile(contentData, fullLocPath);
 		logger.info("Stored: " + weburl.getURL());
 

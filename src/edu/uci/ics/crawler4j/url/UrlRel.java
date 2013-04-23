@@ -3,10 +3,13 @@ package edu.uci.ics.crawler4j.url;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.uci.ics.crawler4j.util.Config;
-import edu.uci.ics.crawler4j.util.Debug;
+import org.apache.log4j.Logger;
+
+import edu.uci.ics.crawler4j.snapshot.SnapshotConfig;
 
 public class UrlRel {
+
+	private static final Logger LOG = Logger.getLogger(UrlRel.class);
 
 	private static final Pattern filters = Pattern.compile(
 			".*(\\.(mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf"
@@ -64,8 +67,7 @@ public class UrlRel {
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
 				cweburl.setURL("http://www.fakeUrl.com/");
-				Debug.checkLogger.debug("curl不规范：\t" + curl + "\t<--\t"
-						+ urlMatch);
+				LOG.debug("curl不规范：\t" + curl + "\t<--\t" + urlMatch);
 			}
 			/* 判断是否redirect */
 			String replacement = null;
@@ -95,7 +97,7 @@ public class UrlRel {
 	 */
 	public static String redirectUrlsInJs(String content, WebURL weburl,
 			String validPath) {
-		String snapshotPageDir = Config.getSnapshotPage();
+		String snapshotPageDir = SnapshotConfig.getConf().getSnapshotPage();
 		// test http://www.gsdpf.org.cn/wza2012/script/headerwrite.js
 		String regstr = "((href|src)\\s*=\\s*[\\\\]?['\"]?\\s*)([^\\s'\">\\\\]*)([\\s'\">\\\\]{2}?)";
 		Pattern urlFilter = Pattern.compile(regstr, Pattern.CASE_INSENSITIVE);
@@ -124,8 +126,7 @@ public class UrlRel {
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
 				cweburl.setURL("http://www.fakeUrl.com/");
-				Debug.checkLogger.debug("curl不规范：\t" + curl + "\t<--\t"
-						+ urlMatch);
+				LOG.debug("curl不规范：\t" + curl + "\t<--\t" + urlMatch);
 			}
 			/* 判断是否redirect */
 			if (shouldRedirect(cweburl, weburl)) {
@@ -176,8 +177,7 @@ public class UrlRel {
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
 				cweburl.setURL("http://www.fakeUrl.com/");
-				Debug.checkLogger.debug("curl不规范：\t" + curl + "\t<--\t"
-						+ urlMatch);
+				LOG.debug("curl不规范：\t" + curl + "\t<--\t" + urlMatch);
 			}
 			/* 判断是否redirect */
 			String replacement = null;
@@ -273,13 +273,14 @@ public class UrlRel {
 		}
 
 		// sub domain
-		if (!Config.isCrossSubDomains()
+		if (!SnapshotConfig.getConf().isCrossSubDomains()
 				&& !url.getSubDomain().equals(context.getSubDomain())) {
 			return false;
 		}
 
 		// port
-		if (!Config.isCrossPorts() && url.getPort() != context.getPort()) {
+		if (!SnapshotConfig.getConf().isCrossPorts()
+				&& url.getPort() != context.getPort()) {
 			return false;
 		}
 
