@@ -44,8 +44,8 @@ public class SnapshotConfig extends CrawlConfig {
 					.getProperty("num_of_crawlers")));
 			this.setSnapshotRoot(prop.getProperty("snapshot_root"));
 			this.setCrawlStorageFolder(this.getSnapshotRoot());
-			this.setSnapshotIndex(this.getSnapshotRoot() + "/snapshot/");
-			this.setSnapshotPage(this.getSnapshotRoot() + "/index/");
+			this.setSnapshotIndex(this.getSnapshotRoot() + "/index/");
+			this.setSnapshotPage(this.getSnapshotRoot() + "/snapshot/");
 			crawlURL.setURL(prop.getProperty("crawl_domains"));
 			this.setCrawlURL(crawlURL);
 

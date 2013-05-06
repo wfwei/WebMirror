@@ -6,7 +6,6 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
-import edu.uci.ics.crawler4j.url.UrlRel;
 import edu.uci.ics.crawler4j.util.io.DeleteFileOrDir;
 
 /**
@@ -15,7 +14,7 @@ import edu.uci.ics.crawler4j.util.io.DeleteFileOrDir;
 
 public class SnapshotCrawlController {
 
-	private static Logger logger = Logger
+	private static Logger LOG = Logger
 			.getLogger(SnapshotCrawlController.class);
 
 	public static void runCrawler() {
@@ -50,7 +49,7 @@ public class SnapshotCrawlController {
 			// controller.Shutdown();
 			// controller.waitUntilFinish();
 		} catch (Exception e) {
-			logger.error("fail to start snapshotcrawler");
+			LOG.error("fail to start snapshotcrawler");
 		}
 
 	}
