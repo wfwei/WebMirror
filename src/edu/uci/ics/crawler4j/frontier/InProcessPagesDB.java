@@ -51,13 +51,50 @@ public class InProcessPagesDB extends WorkQueues {
 	public boolean removeURL(WebURL webUrl) {
 		synchronized (mutex) {
 			try {
-				DatabaseEntry key = new DatabaseEntry(Util.int2ByteArray(webUrl.getDocid()));				
+				/**
+				 * WorkQueues存放key的机制和改动过，这里没改回来，下面是参考暂时的解决方案
+				 * 
+				 * @author WangFengwei
+				 */
+				// new
+				byte[] keyData = new byte[6];
+				keyData[0] = webUrl.getPriority();
+				keyData[1] = (webUrl.getDepth() > Byte.MAX_VALUE ? Byte.MAX_VALUE
+						: (byte) webUrl.getDepth());
+				Util.putIntInByteArray(webUrl.getDocid(), keyData, 2);
+				DatabaseEntry key = new DatabaseEntry(keyData);
+				// ===============
+				// DatabaseEntry key = new
+				// DatabaseEntry(Util.int2ByteArray(webUrl
+				// .getDocid()));
+				// original
 				Cursor cursor = null;
 				OperationStatus result;
 				DatabaseEntry value = new DatabaseEntry();
 				Transaction txn = env.beginTransaction(null, null);
 				try {
 					cursor = urlsDB.openCursor(txn, null);
+					
+					/**
+					 * For Debug 遍历当前的Cursor
+					 * 
+					 * @author WangFengwei
+					 */
+					// // Get the DatabaseEntry objects that the cursor will
+					// use.
+					// DatabaseEntry foundKey = new DatabaseEntry();
+					// DatabaseEntry foundData = new DatabaseEntry();
+					//
+					// // Iterate from the last record to the first in the
+					// database
+					// while (cursor.getPrev(foundKey, foundData, null) ==
+					// OperationStatus.SUCCESS) {
+					// System.out.println("Key | Data : " + foundKey + " | "
+					// + foundData + "");
+					// }
+					// System.out.println("key tha we are searching is : " +
+					// key);
+					
 					result = cursor.getSearchKey(key, value, null);
 					
 					if (result == OperationStatus.SUCCESS) {

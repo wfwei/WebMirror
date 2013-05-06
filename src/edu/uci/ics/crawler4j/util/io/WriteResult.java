@@ -30,9 +30,12 @@ public class WriteResult {
 		if (filetype.contains("_")) {
 			filetype = filetype.substring(0, filetype.indexOf('_'));
 		}
-		String data = localPath + "\t" + url + "\n";
-		destination += "/" + filetype + ".idx";
+		// 去掉端口一并存储 例如：
+		// D:/snapshottheweb/tmp9/index/www.sdcl.org.cn_MH_8085/---->D:/snapshottheweb/tmp9/index/www.sdcl.org.cn/
+		destination = destination.replaceAll("_MH_[\\d]*", "") + filetype
+				+ ".idx";
 		createParentFolders(destination);
+		String data = localPath + "\t" + url + "\n";
 		try {
 			FileChannel fc = new FileOutputStream(destination, true)
 					.getChannel();

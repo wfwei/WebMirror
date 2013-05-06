@@ -108,6 +108,7 @@ public class PageFetcher extends Configurable {
 						new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword()));
 			}
 
+<<<<<<< HEAD
 			HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
 			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
@@ -131,6 +132,59 @@ public class PageFetcher extends Configurable {
             }
 
         });
+=======
+			HttpHost proxy = new HttpHost(config.getProxyHost(),
+					config.getProxyPort());
+			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,
+					proxy);
+		}
+		/*登陆模块 @author wangfengwei*/
+		if (config.getLoginPosturl() != null
+				&& config.getLoginPostParas() != null) {
+			try {
+				HttpPost post = new HttpPost(config.getLoginPosturl());
+				// 设置需要提交的参数
+				List<NameValuePair> paras = new ArrayList<NameValuePair>();
+				String paras_str = config.getLoginPostParas();
+				String[] para_array = paras_str.split(";");
+				for (String pair : para_array) {
+					if (pair != null && pair.contains(":")) {
+						String[] key_value = pair.split(":");
+						paras.add(new BasicNameValuePair(key_value[0].trim(),
+								key_value[1].trim()));
+					}
+
+				}
+				post.setEntity(new UrlEncodedFormEntity(paras, "utf-8"));
+				httpClient.execute(post);
+				post.abort();
+			} catch (Exception e) {
+				logger.warn("login error:\t" + e.toString());
+			}
+
+		}
+		httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
+
+			@Override
+			public void process(final HttpResponse response,
+					final HttpContext context) throws HttpException,
+					IOException {
+				HttpEntity entity = response.getEntity();
+				Header contentEncoding = entity.getContentEncoding();
+				if (contentEncoding != null) {
+					HeaderElement[] codecs = contentEncoding.getElements();
+					for (HeaderElement codec : codecs) {
+						if (codec.getName().equalsIgnoreCase("gzip")) {
+							response.setEntity(new GzipDecompressingEntity(
+									response.getEntity()));
+							return;
+						}
+					}
+				}
+			}
+
+		});
+>>>>>>> origin/master
 
 		if (connectionMonitorThread == null) {
 			connectionMonitorThread = new IdleConnectionMonitorThread(connectionManager);

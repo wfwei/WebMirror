@@ -5,3 +5,4 @@ target/*
 javadocs/*
 /res
 *.log
+*.log.*
