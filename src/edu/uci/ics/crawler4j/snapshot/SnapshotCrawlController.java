@@ -14,19 +14,21 @@ import edu.uci.ics.crawler4j.util.io.DeleteFileOrDir;
 
 public class SnapshotCrawlController {
 
-	private static Logger LOG = Logger
-			.getLogger(SnapshotCrawlController.class);
+	private static Logger LOG = Logger.getLogger(SnapshotCrawlController.class);
 
-	public static void runCrawler() {
+	public static void runCrawler(String crawlUrl) {
 
 		SnapshotConfig config = SnapshotConfig.getConf();
 		config.initFromFile();
+		config.initFromDB();
+		if (crawlUrl != null)
+			config.getCrawlURL().setURL(crawlUrl);
+
 		if (!config.isResumableCrawling()) {
 			String fullValidDomain = UrlRel.getFullValidDomain(config
 					.getCrawlURL());
 			DeleteFileOrDir.delete(config.getSnapshotIndex() + fullValidDomain);
 		}
-
 
 		PageFetcher pageFetcher = new PageFetcher(config);
 		RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
@@ -57,7 +59,7 @@ public class SnapshotCrawlController {
 	}
 
 	public static void main(String[] args) throws Exception {
-		runCrawler();
+		runCrawler(null);
 	}
 
 }

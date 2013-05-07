@@ -89,7 +89,7 @@ public class WebURL implements Serializable {
 
 		int domainStartIdx = url.indexOf("//") + 2;
 		int domainEndIdx = url.indexOf('/', domainStartIdx);
-		if (domainStartIdx >= domainEndIdx)
+		if (domainStartIdx >= domainEndIdx || domainStartIdx<2)
 			return;
 		domain = url.substring(domainStartIdx, domainEndIdx);
 		/**
