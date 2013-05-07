@@ -101,7 +101,7 @@ public class UrlRel {
 			String curl = URLCanonicalizer.getCanonicalURL(urlMatch.trim(),
 					webUrl.getURL());
 			WebURL cweburl = new WebURL();
-			if (curl != null) {
+			if (curl != null && curl.length()>"http://".length()) {
 				cweburl.setURL(curl);
 			} else {
 				/* 匹配到的链接不规范，忽略之 */

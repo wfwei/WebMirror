@@ -40,15 +40,9 @@ public class URLCanonicalizer {
 		return getCanonicalURL(url, null);
 	}
 
-	/**
-	 * 返回href的合法形式（以http或https开头，子域名，域名，路径齐全），如果没有，则返回null
-	 * @param href
-	 * @param context
-	 * @return
-	 */
 	public static String getCanonicalURL(String href, String context) {
 		if (null == href || href.length() == 0 || !href.matches("[^()$]*")) {
-			/* 过滤不合法的href */
+			/*过滤不合法的href*/
 			return null;
 		}
 		/* 对href进行必要容错处理 */
@@ -57,7 +51,6 @@ public class URLCanonicalizer {
 			href = href.substring(0, href.length() - 1);
 		}
 
-		URL result = null;
 		try {
 			URL canonicalURL = new URL(UrlResolver.resolveUrl(
 					context == null ? "" : context, href));
@@ -126,19 +119,12 @@ public class URLCanonicalizer {
 			String host = canonicalURL.getHost().toLowerCase();
 			String pathAndQueryString = normalizePath(path) + queryString;
 
-			result = new URL(protocol, host, port, pathAndQueryString);
+			URL result = new URL(protocol, host, port, pathAndQueryString);
+			return result.toExternalForm();
 
 		} catch (MalformedURLException ex) {
 			return null;
 		} catch (URISyntaxException ex) {
-			return null;
-		}
-		// MARK 强制打开了https协议
-		if (result != null
-				&& (result.toExternalForm().startsWith("http://") || result
-						.toExternalForm().startsWith("https://"))) {
-			return result.toExternalForm();
-		} else {
 			return null;
 		}
 	}

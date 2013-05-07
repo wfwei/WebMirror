@@ -57,9 +57,8 @@ public class CrawlConfig {
 
 	/**
 	 * Should we also crawl https pages?
-	 * TODO add to config file
 	 */
-	private boolean includeHttpsPages = true;
+	private boolean includeHttpsPages = false;
 
 	/**
 	 * Should we fetch binary content such as images, audio, ...?
@@ -93,9 +92,9 @@ public class CrawlConfig {
 
 	/**
 	 * Max allowed size of a page. Pages larger than this size will not be
-	 * fetched. MARK 上限改成了10M
+	 * fetched.
 	 */
-	private int maxDownloadSize = 1048576 * 10;
+	private int maxDownloadSize = 1048576;
 
 	/**
 	 * Should we follow redirects?
@@ -128,16 +127,6 @@ public class CrawlConfig {
 	 */
 	private String proxyPassword = null;
 
-	/**
-	 * 如果爬虫需要模拟登陆，需要设置正确的登陆地址
-	 */
-	private String loginPosturl = null;
-	/**
-	 * 如果爬虫需要模拟登陆，设置必要的登陆参数
-	 * 格式：name1:value1;name2:value2;
-	 */
-	private String loginPostParas = null;
-	
 	public CrawlConfig() {
 	}
 
@@ -148,20 +137,16 @@ public class CrawlConfig {
 	 */
 	public void validate() throws Exception {
 		if (crawlStorageFolder == null) {
-			throw new Exception(
-					"Crawl storage folder is not set in the CrawlConfig.");
+			throw new Exception("Crawl storage folder is not set in the CrawlConfig.");
 		}
 		if (politenessDelay < 0) {
-			throw new Exception("Invalid value for politeness delay: "
-					+ politenessDelay);
+			throw new Exception("Invalid value for politeness delay: " + politenessDelay);
 		}
 		if (maxDepthOfCrawling < -1) {
-			throw new Exception(
-					"Maximum crawl depth should be either a positive number or -1 for unlimited depth.");
+			throw new Exception("Maximum crawl depth should be either a positive number or -1 for unlimited depth.");
 		}
 		if (maxDepthOfCrawling > Short.MAX_VALUE) {
-			throw new Exception("Maximum value for crawl depth is "
-					+ Short.MAX_VALUE);
+			throw new Exception("Maximum value for crawl depth is " + Short.MAX_VALUE);
 		}
 
 	}
@@ -259,8 +244,7 @@ public class CrawlConfig {
 	/**
 	 * Should we fetch binary content such as images, audio, ...?
 	 */
-	public void setIncludeBinaryContentInCrawling(
-			boolean includeBinaryContentInCrawling) {
+	public void setIncludeBinaryContentInCrawling(boolean includeBinaryContentInCrawling) {
 		this.includeBinaryContentInCrawling = includeBinaryContentInCrawling;
 	}
 
@@ -392,22 +376,6 @@ public class CrawlConfig {
 		this.proxyPassword = proxyPassword;
 	}
 
-	public String getLoginPosturl() {
-		return loginPosturl;
-	}
-
-	public void setLoginPosturl(String loginPosturl) {
-		this.loginPosturl = loginPosturl;
-	}
-
-	public String getLoginPostParas() {
-		return loginPostParas;
-	}
-
-	public void setLoginPostParas(String loginPostParas) {
-		this.loginPostParas = loginPostParas;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -417,15 +385,12 @@ public class CrawlConfig {
 		sb.append("Max pages to fetch: " + getMaxPagesToFetch() + "\n");
 		sb.append("User agent string: " + getUserAgentString() + "\n");
 		sb.append("Include https pages: " + isIncludeHttpsPages() + "\n");
-		sb.append("Include binary content: "
-				+ isIncludeBinaryContentInCrawling() + "\n");
-		sb.append("Max connections per host: " + getMaxConnectionsPerHost()
-				+ "\n");
+		sb.append("Include binary content: " + isIncludeBinaryContentInCrawling() + "\n");
+		sb.append("Max connections per host: " + getMaxConnectionsPerHost() + "\n");
 		sb.append("Max total connections: " + getMaxTotalConnections() + "\n");
 		sb.append("Socket timeout: " + getSocketTimeout() + "\n");
 		sb.append("Max total connections: " + getMaxTotalConnections() + "\n");
-		sb.append("Max outgoing links to follow: "
-				+ getMaxOutgoingLinksToFollow() + "\n");
+		sb.append("Max outgoing links to follow: " + getMaxOutgoingLinksToFollow() + "\n");
 		sb.append("Max download size: " + getMaxDownloadSize() + "\n");
 		sb.append("Should follow redirects?: " + isFollowRedirects() + "\n");
 		sb.append("Proxy host: " + getProxyHost() + "\n");

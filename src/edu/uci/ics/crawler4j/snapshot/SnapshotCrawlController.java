@@ -18,6 +18,7 @@ public class SnapshotCrawlController {
 			.getLogger(SnapshotCrawlController.class);
 
 	public static void runCrawler() {
+
 		SnapshotConfig config = SnapshotConfig.getConf();
 		config.initFromFile();
 		if (!config.isResumableCrawling()) {
@@ -25,6 +26,7 @@ public class SnapshotCrawlController {
 					.getCrawlURL());
 			DeleteFileOrDir.delete(config.getSnapshotIndex() + fullValidDomain);
 		}
+
 
 		PageFetcher pageFetcher = new PageFetcher(config);
 		RobotstxtConfig robotstxtConfig = new RobotstxtConfig();

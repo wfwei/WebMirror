@@ -62,8 +62,6 @@ public class SnapshotConfig extends CrawlConfig {
 			this.setCrossPorts(prop.getProperty("cross_ports").contains("true"));
 			this.setIncludeBinaryContentInCrawling(prop.getProperty(
 					"include_binary_content_in_in_crawling").contains("true"));
-			this.setLoginPostParas(prop.getProperty("login_post_url"));
-			this.setLoginPostParas(prop.getProperty("login_post_paras"));
 			this.setResumableCrawling(prop.getProperty("resumableCrawling")
 					.contains("true"));
 			is.close();
