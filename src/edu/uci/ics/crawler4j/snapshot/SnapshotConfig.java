@@ -46,17 +46,13 @@ public class SnapshotConfig extends CrawlConfig {
 			this.setCrawlStorageFolder(this.getSnapshotRoot());
 			this.setSnapshotIndex(this.getSnapshotRoot() + "/index/");
 			this.setSnapshotPage(this.getSnapshotRoot() + "/snapshot/");
-			crawlURL.setURL(prop.getProperty("crawl_domains"));
-			this.setCrawlURL(crawlURL);
-
+			this.getCrawlURL().setURL(prop.getProperty("crawl_domains"));
 			this.setMaxDepthOfCrawling(Integer.parseInt(prop
 					.getProperty("max_depth")));
-
 			this.setPolitenessDelay(Integer.parseInt(prop
 					.getProperty("politeness_delay")));
 			this.setRobotsEnabled(prop.getProperty("robots_status").contains(
 					"true"));
-
 			this.setCrossSubDomains(prop.getProperty("cross_sub_domains")
 					.contains("true"));
 			this.setCrossPorts(prop.getProperty("cross_ports").contains("true"));

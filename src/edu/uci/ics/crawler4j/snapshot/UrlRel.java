@@ -204,7 +204,7 @@ public class UrlRel {
 
 		// sub domain
 		if (!SnapshotConfig.getConf().isCrossSubDomains()
-				&& !url.getSubDomain().equals(context.getSubDomain())) {
+				&& !context.getSubDomain().equals(url.getSubDomain())) {
 			return false;
 		}
 
