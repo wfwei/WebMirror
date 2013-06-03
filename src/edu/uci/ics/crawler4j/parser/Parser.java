@@ -175,7 +175,6 @@ public class Parser extends Configurable {
 		for (ExtractedUrlAnchorPair jsLinkPair : (HashSet<ExtractedUrlAnchorPair>) ExtractLinks
 				.extractJsLinks(parseData.getHtml())) {
 			contentHandler.addOutgoingUrls(jsLinkPair);
-			// System.out.println(jsLinkPair.getAnchor());
 		}
 
 		List<WebURL> outgoingUrls = new ArrayList<WebURL>();

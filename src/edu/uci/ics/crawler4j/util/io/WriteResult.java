@@ -23,19 +23,8 @@ public class WriteResult {
 	 * @param url
 	 * @param destination
 	 */
-	public static synchronized void writeIdxFile(String localPath, String url,
-			String destination) {
-		String filetype = localPath.substring(localPath.lastIndexOf('.') + 1);
-		// aspx_WH_EMailType=0这种网页会认为是aspx
-		if (filetype.contains("_")) {
-			filetype = filetype.substring(0, filetype.indexOf('_'));
-		}
-		// 去掉端口一并存储 例如：
-		// D:/snapshottheweb/tmp9/index/www.sdcl.org.cn_MH_8085/---->D:/snapshottheweb/tmp9/index/www.sdcl.org.cn/
-		destination = destination.replaceAll("_MH_[\\d]*", "") + filetype
-				+ ".idx";
+	public static synchronized void writeIdxFile(String data, String destination) {
 		createParentFolders(destination);
-		String data = localPath + "\t" + url + "\n";
 		try {
 			FileChannel fc = new FileOutputStream(destination, true)
 					.getChannel();

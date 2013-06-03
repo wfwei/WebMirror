@@ -24,6 +24,6 @@ edu.uci.ics.crawler4j.snapshot.*,
 edu.uci.ics.crawler4j.url.*,
 edu.uci.ics.crawler4j.util.*</entry>
 <entry key="profiler.settings.istrument.getter.setter.methods">true</entry>
-<entry key="myeclipse.profiling.mode">0</entry>
 <entry key="ProfilerMemorySettings_stacktraces">-1</entry>
+<entry key="myeclipse.profiling.mode">1</entry>
 </properties>

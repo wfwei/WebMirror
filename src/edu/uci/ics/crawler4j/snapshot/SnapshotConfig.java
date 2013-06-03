@@ -61,6 +61,8 @@ public class SnapshotConfig extends CrawlConfig {
 					"include_binary_content_in_in_crawling").contains("true"));
 			this.setResumableCrawling(prop.getProperty("resumableCrawling")
 					.contains("true"));
+//			this.setProxyHost("localhost");
+//			this.setProxyPort(8087);
 			is.close();
 		} catch (Exception e) {
 			LOG.warn("fail to load crawler4j.properties!");

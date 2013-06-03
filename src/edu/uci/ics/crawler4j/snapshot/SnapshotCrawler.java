@@ -62,8 +62,7 @@ public class SnapshotCrawler extends WebCrawler {
 			contentData = content.getBytes(UTF8);
 		} else if (page.getContentType().contains("css")) {
 			String content = page.getParseData().toString();
-			content = UrlRel
-					.redirectUrls(content, weburl, validPath, "css")
+			content = UrlRel.redirectUrls(content, weburl, validPath, "css")
 					.replaceAll("@charset[^;]*;", "@charset \"utf-8\";");
 			contentData = content.getBytes(UTF8);
 		} else if (page.getContentType().contains("image")) {
@@ -76,7 +75,6 @@ public class SnapshotCrawler extends WebCrawler {
 				return;
 			}
 		} else {
-
 			/**
 			 * 跳过的类型有：text/xml,text/plain,以及非js|css的application类型
 			 */
@@ -85,9 +83,16 @@ public class SnapshotCrawler extends WebCrawler {
 			return;
 		}
 
-		/* 写文件系统，但是前面有跳过部分文件，这样html中重定向的链接将会失效 */
-		WriteResult.writeIdxFile(fullLocPath, weburl.getURL(), SnapshotConfig
-				.getConf().getSnapshotIndex() + fullValidDomain + "/");
+		String idxFileDir = SnapshotConfig.getConf().getSnapshotIndex()
+				+ fullValidDomain.replaceAll("_MH_[\\d]*", "") + "/";
+		String filetype = fullLocPath
+				.substring(fullLocPath.lastIndexOf('.') + 1);
+		int depth = weburl.getDepth();
+		if (depth > 6)
+			depth = 6;
+		String idxDesFile = idxFileDir + filetype + depth + ".idx";
+		String idxDataItem = fullLocPath + "\t" + weburl.getURL() + "\n";
+		WriteResult.writeIdxFile(idxDataItem, idxDesFile);
 		WriteResult.writeBytesToFile(contentData, fullLocPath);
 		LOG.info("Stored: " + weburl.getURL());
 

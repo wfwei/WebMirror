@@ -309,7 +309,6 @@ public class WebCrawler implements Runnable {
 					 * 检查url是否是一个页面的url，http://www.gddpf.org.cn/news/uploads/
 					 * uploads/content/Js/Js/uploads/uploads/linkImg/
 					 * 20110329130212625.jpg是一个图片的url，但是却是一个网页
-					 * 
 					 */
 					if (curURL
 							.getURL()
@@ -344,7 +343,6 @@ public class WebCrawler implements Runnable {
 									webURL.setDocid(docIdServer
 											.getNewDocID(webURL.getURL()));
 									toSchedule.add(webURL);
-//									System.out.println("should visit:\t"+webURL.getURL());
 								}
 							}
 						}
@@ -370,6 +368,7 @@ public class WebCrawler implements Runnable {
 							if (newdocid > 0) {
 								webURL.setDepth((short) -1);
 								webURL.setDocid(newdocid);
+								// just throw away
 							} else {
 								webURL.setDocid(-1);
 								webURL.setDepth((short) (curURL.getDepth() + 1));

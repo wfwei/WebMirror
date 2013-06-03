@@ -101,7 +101,7 @@ public class UrlRel {
 			String curl = URLCanonicalizer.getCanonicalURL(urlMatch.trim(),
 					webUrl.getURL());
 			WebURL cweburl = new WebURL();
-			if (curl != null && curl.length()>"http://".length()) {
+			if (curl != null && curl.length() > "http://".length()) {
 				cweburl.setURL(curl);
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
@@ -127,13 +127,11 @@ public class UrlRel {
 	}
 
 	/**
-	 * 为url中的path添加文件，判断路径是否包含了文件名，比如：···/path/to/file/a.html
-	 * 直接返回；···/path/to/file 或···/path/to/file/ 返回···/path/to/file/index.html；
+	 * 为url中的path添加文件，判断路径是否包含了文件名
 	 * 
 	 * path的几种情况： 1. host/a/b/index.html 不用改 2. host/a/b/ -->
 	 * host/a/b/index.html 3. host/a/b ---> host/a/b/index.html 4.
-	 * host/a/b/page.asp?para=1 --> host/a/b/page.asp
-	 * 
+	 * host/a/b/page.asp?para=1 --> host/a/b/page.asp?para=1.html
 	 * 
 	 * @param path
 	 * @return
@@ -152,6 +150,9 @@ public class UrlRel {
 		if (path.lastIndexOf('.') <= path.lastIndexOf('/')) {
 			return path + "/index.html";
 		}
+
+		if (!staticFilePatterns.matcher(path).find() && !path.endsWith(".html"))
+			path += ".html";
 
 		return path;
 	}
@@ -231,7 +232,7 @@ public class UrlRel {
 		WebURL weburl = new WebURL();
 		// // ip不能解析
 		// //
-		weburl.setURL("http://www.scdpf.org.cn:8080/Content/ggtz/ggtz1.html");
+		weburl.setURL("http://www.scdpf.org.cn:8080/Content/ggtz/ggtz1.htm");
 		// weburl.setURL("http://10.214.43.12:8080/a/b/c");
 		// System.out.println(weburl.getPath());
 		String url = "./../abc.sf/com";
