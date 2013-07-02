@@ -32,8 +32,22 @@ public class UrlRel {
 			"((url)\\s*[(]['\"]?)([^)'\"]*)(['\"]?[)])",
 			Pattern.CASE_INSENSITIVE);
 
-	public static String redirectUrls4Server(String page, String serverRoot,
-			String contentType) {
+	/**
+	 * 将页面中的url转成相对于服务器根目录的绝对网址，即：/localFile/...
+	 * 
+	 * @param page
+	 *            页面源码
+	 * @param webUrl
+	 *            页面url
+	 * @param serverRoot
+	 *            服务器根目录
+	 * @param contentType
+	 *            文件类型，html,css,javascript
+	 * @return
+	 */
+	public static String redirectUrls4Server(String page, WebURL webUrl,
+			String serverRoot, String contentType) {
+
 		Matcher matchRes = null;
 		if (contentType.contains("html"))
 			matchRes = urlsInHtml.matcher(page);
@@ -43,16 +57,31 @@ public class UrlRel {
 			matchRes = urlsInCss.matcher(page);
 
 		StringBuffer sb = new StringBuffer();
-		String urlMatch = null, preMatch = null, postMatch = null;
+		String wholeMatch = null, preMatch = null, urlMatch = null, postMatch = null;
 		while (matchRes.find()) {
-			urlMatch = matchRes.group(3).trim();
+			wholeMatch = matchRes.group(0);
 			preMatch = matchRes.group(1);
+			urlMatch = matchRes.group(3);
 			postMatch = matchRes.group(4);
-
-			while (urlMatch.startsWith("."))
-				urlMatch.substring(urlMatch.indexOf('/') + 1);
-
-			String replacement = preMatch + serverRoot + urlMatch + postMatch;
+			String curl = URLCanonicalizer.getCanonicalURL(urlMatch.trim(),
+					webUrl.getURL());
+			WebURL cweburl = new WebURL();
+			if (curl != null && curl.length() > "http://".length()) {
+				cweburl.setURL(curl);
+			} else {
+				/* 匹配到的链接不规范，忽略之 */
+				cweburl.setURL("http://www.fakeUrl.com/");
+				LOG.debug("curl不规范：\t" + curl + "\t<--\t" + urlMatch);
+			}
+			/* 判断是否redirect */
+			String replacement = null;
+			if (shouldRedirect(cweburl, webUrl)) {
+				String locRelPath = getDataDir(cweburl)
+						+ appendFileToPath(cweburl.getPath());
+				replacement = preMatch + serverRoot + locRelPath + postMatch;
+			} else {
+				replacement = wholeMatch;
+			}
 
 			matchRes.appendReplacement(sb,
 					Matcher.quoteReplacement(replacement));
@@ -111,7 +140,7 @@ public class UrlRel {
 			/* 判断是否redirect */
 			String replacement = null;
 			if (shouldRedirect(cweburl, webUrl)) {
-				String locRelPath = getFullValidDomain(cweburl)
+				String locRelPath = getDataDir(cweburl)
 						+ appendFileToPath(cweburl.getPath());
 				replacement = preMatch + supdirs + "../" + locRelPath
 						+ postMatch;
@@ -127,11 +156,13 @@ public class UrlRel {
 	}
 
 	/**
-	 * 为url中的path添加文件，判断路径是否包含了文件名
+	 * 为url中的path添加文件，判断路径是否包含了文件名，比如：···/path/to/file/a.html
+	 * 直接返回；···/path/to/file 或···/path/to/file/ 返回···/path/to/file/index.html；
 	 * 
 	 * path的几种情况： 1. host/a/b/index.html 不用改 2. host/a/b/ -->
 	 * host/a/b/index.html 3. host/a/b ---> host/a/b/index.html 4.
-	 * host/a/b/page.asp?para=1 --> host/a/b/page.asp?para=1.html
+	 * host/a/b/page.asp?para=1 --> host/a/b/page.asp
+	 * 
 	 * 
 	 * @param path
 	 * @return
@@ -158,20 +189,35 @@ public class UrlRel {
 	}
 
 	/**
-	 * 将url合法化：包括获取端口，对特殊字符转化
-	 * 
-	 * @param weburl
-	 * @return
+	 * 得到weburl的全部合法domain，包括子域名，包括获取端口，对特殊字符转化 之后加上对应的hostId
+	 * <p>
+	 * 如hostId=43的http://eagle.zju.edu.cn/abc/d.html-->eagle.zju.edu.cn-43
 	 */
-	public static String getFullValidDomain(WebURL weburl) {
-		String fullValidDomain = null;
+	public static String getDataDir(WebURL weburl) {
+		String fullValidDomain = weburl.getDomain();
 		fullValidDomain = (weburl.getSubDomain() == "") ? (weburl.getDomain())
 				: (weburl.getSubDomain() + "." + weburl.getDomain());
 		if (weburl.getPort() != 80) {
 			fullValidDomain += ":" + weburl.getPort();
 		}
 		fullValidDomain = replaceInvalidChar(fullValidDomain);
-		return fullValidDomain;
+		return fullValidDomain + "-" + SnapshotConfig.getConf().getHostId();
+	}
+
+	/** 得到idx文件的目录 */
+	public static String getIdxDir(WebURL weburl) {
+		String idxFileDir;
+		if (SnapshotConfig.getConf().isCrossSubDomains())
+			idxFileDir = weburl.getDomain();
+		else
+			idxFileDir = (weburl.getSubDomain() == "") ? (weburl.getDomain())
+					: (weburl.getSubDomain() + "." + weburl.getDomain());
+		if (SnapshotConfig.getConf().isCrossPorts()) {
+			idxFileDir = idxFileDir.replaceAll("_MH_[\\d]*", "");
+		}
+		return SnapshotConfig.getConf().getSnapshotIndex()
+				+ replaceInvalidChar(idxFileDir + "-"
+						+ SnapshotConfig.getConf().getHostId()) + "/";
 	}
 
 	/**
@@ -215,7 +261,7 @@ public class UrlRel {
 			return false;
 		}
 
-		if (context.getDomain().equals(url.getDomain())) {
+		if (url.getDomain().equals(context.getDomain())) {
 			return true;
 		}
 		return false;
@@ -232,7 +278,7 @@ public class UrlRel {
 		WebURL weburl = new WebURL();
 		// // ip不能解析
 		// //
-		weburl.setURL("http://www.scdpf.org.cn:8080/Content/ggtz/ggtz1.htm");
+		weburl.setURL("http://www.scdpf.org.cn:8080/Content/ggtz/ggtz1.html");
 		// weburl.setURL("http://10.214.43.12:8080/a/b/c");
 		// System.out.println(weburl.getPath());
 		String url = "./../abc.sf/com";

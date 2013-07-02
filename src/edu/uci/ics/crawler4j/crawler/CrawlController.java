@@ -41,7 +41,8 @@ import java.util.List;
  */
 public class CrawlController extends Configurable {
 
-	private static final Logger logger = Logger.getLogger(CrawlController.class.getName());
+	private static final Logger logger = Logger
+			.getLogger(CrawlController.class);
 
 	/**
 	 * The 'customData' object can be used for passing custom crawl-related
@@ -73,15 +74,15 @@ public class CrawlController extends Configurable {
 
 	protected final Object waitingLock = new Object();
 
-	public CrawlController(CrawlConfig config, PageFetcher pageFetcher, RobotstxtServer robotstxtServer)
-			throws Exception {
+	public CrawlController(CrawlConfig config, PageFetcher pageFetcher,
+			RobotstxtServer robotstxtServer) throws Exception {
 		super(config);
-
 		config.validate();
 		File folder = new File(config.getCrawlStorageFolder());
 		if (!folder.exists()) {
 			if (!folder.mkdirs()) {
-				throw new Exception("Couldn't create this folder: " + folder.getAbsolutePath());
+				throw new Exception("Couldn't create this folder: "
+						+ folder.getAbsolutePath());
 			}
 		}
 
@@ -95,7 +96,8 @@ public class CrawlController extends Configurable {
 		File envHome = new File(config.getCrawlStorageFolder() + "/frontier");
 		if (!envHome.exists()) {
 			if (!envHome.mkdir()) {
-				throw new Exception("Couldn't create this folder: " + envHome.getAbsolutePath());
+				throw new Exception("Couldn't create this folder: "
+						+ envHome.getAbsolutePath());
 			}
 		}
 		if (!resumable) {
@@ -122,7 +124,8 @@ public class CrawlController extends Configurable {
 	 *            the number of concurrent threads that will be contributing in
 	 *            this crawling session.
 	 */
-	public <T extends WebCrawler> void start(final Class<T> _c, final int numberOfCrawlers) {
+	public <T extends WebCrawler> void start(final Class<T> _c,
+			final int numberOfCrawlers) {
 		this.start(_c, numberOfCrawlers, true);
 	}
 
@@ -135,11 +138,13 @@ public class CrawlController extends Configurable {
 	 *            the number of concurrent threads that will be contributing in
 	 *            this crawling session.
 	 */
-	public <T extends WebCrawler> void startNonBlocking(final Class<T> _c, final int numberOfCrawlers) {
+	public <T extends WebCrawler> void startNonBlocking(final Class<T> _c,
+			final int numberOfCrawlers) {
 		this.start(_c, numberOfCrawlers, false);
 	}
 
-	protected <T extends WebCrawler> void start(final Class<T> _c, final int numberOfCrawlers, boolean isBlocking) {
+	protected <T extends WebCrawler> void start(final Class<T> _c,
+			final int numberOfCrawlers, boolean isBlocking) {
 		try {
 			finished = false;
 			crawlersLocalData.clear();
@@ -165,7 +170,6 @@ public class CrawlController extends Configurable {
 				public void run() {
 					try {
 						synchronized (waitingLock) {
-
 							while (true) {
 								sleep(10);
 								boolean someoneIsWorking = false;
@@ -173,9 +177,12 @@ public class CrawlController extends Configurable {
 									Thread thread = threads.get(i);
 									if (!thread.isAlive()) {
 										if (!shuttingDown) {
-											logger.info("Thread " + i + " was dead, I'll recreate it.");
+											logger.info("Thread "
+													+ i
+													+ " was dead, I'll recreate it.");
 											T crawler = _c.newInstance();
-											thread = new Thread(crawler, "Crawler " + (i + 1));
+											thread = new Thread(crawler,
+													"Crawler " + (i + 1));
 											threads.remove(i);
 											threads.add(i, thread);
 											crawler.setThread(thread);
@@ -184,7 +191,8 @@ public class CrawlController extends Configurable {
 											crawlers.remove(i);
 											crawlers.add(i, crawler);
 										}
-									} else if (crawlers.get(i).isNotWaitingForNewURLs()) {
+									} else if (crawlers.get(i)
+											.isNotWaitingForNewURLs()) {
 										someoneIsWorking = true;
 									}
 								}
@@ -198,19 +206,24 @@ public class CrawlController extends Configurable {
 									someoneIsWorking = false;
 									for (int i = 0; i < threads.size(); i++) {
 										Thread thread = threads.get(i);
-										if (thread.isAlive() && crawlers.get(i).isNotWaitingForNewURLs()) {
+										if (thread.isAlive()
+												&& crawlers
+														.get(i)
+														.isNotWaitingForNewURLs()) {
 											someoneIsWorking = true;
 										}
 									}
 									if (!someoneIsWorking) {
 										if (!shuttingDown) {
-											long queueLength = frontier.getQueueLength();
+											long queueLength = frontier
+													.getQueueLength();
 											if (queueLength > 0) {
 												continue;
 											}
 											logger.info("No thread is working and no more URLs are in queue waiting for another 10 seconds to make sure...");
 											sleep(10);
-											queueLength = frontier.getQueueLength();
+											queueLength = frontier
+													.getQueueLength();
 											if (queueLength > 0) {
 												continue;
 											}
@@ -224,7 +237,8 @@ public class CrawlController extends Configurable {
 										frontier.finish();
 										for (T crawler : crawlers) {
 											crawler.onBeforeExit();
-											crawlersLocalData.add(crawler.getMyLocalData());
+											crawlersLocalData.add(crawler
+													.getMyLocalData());
 										}
 
 										logger.info("Waiting for 10 seconds before final clean up...");
@@ -363,7 +377,7 @@ public class CrawlController extends Configurable {
 	 * 
 	 * Note that if you add three seen Urls with document ids 1,2, and 7. Then
 	 * the next URL that is found during the crawl will get a doc id of 8. Also
-	 * you need to ensure to add seen Urls in increasing order of document ids. 
+	 * you need to ensure to add seen Urls in increasing order of document ids.
 	 * 
 	 * @param pageUrl
 	 *            the URL of the page

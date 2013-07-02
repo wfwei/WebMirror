@@ -63,7 +63,7 @@ public class CrawlConfig {
 	/**
 	 * Should we fetch binary content such as images, audio, ...?
 	 */
-	private boolean includeBinaryContentInCrawling = false;
+	private boolean includeBinaryContentInCrawling = true;
 
 	/**
 	 * Maximum Connections per host

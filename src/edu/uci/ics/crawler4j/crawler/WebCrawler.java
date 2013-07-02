@@ -101,6 +101,9 @@ public class WebCrawler implements Runnable {
 	 */
 	private boolean isWaitingForNewURLs;
 
+	/** minimum url depth to crawl */
+	private int minDepth;
+
 	/**
 	 * Initializes the current instance of the crawler
 	 * 
@@ -118,6 +121,7 @@ public class WebCrawler implements Runnable {
 		this.parser = new Parser(crawlController.getConfig());
 		this.myController = crawlController;
 		this.isWaitingForNewURLs = false;
+		this.minDepth = -1;
 	}
 
 	/**
@@ -170,6 +174,11 @@ public class WebCrawler implements Runnable {
 		return null;
 	}
 
+	/** The minimum depth of url in queue */
+	public int getMinDepth() {
+		return minDepth;
+	}
+
 	public void run() {
 		onStart();
 		while (true) {
@@ -178,6 +187,7 @@ public class WebCrawler implements Runnable {
 			frontier.getNextURLs(50, assignedURLs);
 			isWaitingForNewURLs = false;
 			if (assignedURLs.size() == 0) {
+				minDepth++; // TODO
 				if (frontier.isFinished()) {
 					return;
 				}
@@ -189,6 +199,7 @@ public class WebCrawler implements Runnable {
 			} else {
 				for (WebURL curURL : assignedURLs) {
 					if (curURL != null) {
+						this.minDepth = curURL.getDepth();
 						processPage(curURL);
 						frontier.setProcessed(curURL);
 					}
@@ -261,30 +272,14 @@ public class WebCrawler implements Runnable {
 										.getNewDocID(movedToUrl));
 								frontier.schedule(webURL);
 							}
+							return;
 						}
 					}
 				} else if (fetchResult.getStatusCode() == CustomFetchStatus.PageTooBig) {
 					logger.info("Skipping a page which was bigger than max allowed size: "
 							+ curURL.getURL());
-				} else if (fetchResult.getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-					/**
-					 * @author WangFengwei 重复爬取500页面2次
-					 */
-					int priority = curURL.getPriority();
-					if (priority < 127) {
-						priority += 200;
-						if (priority > 127)
-							priority = 127;
-						curURL.setPriority((byte) priority);
-
-						try {
-							Thread.sleep(6000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						processPage(curURL);
-					}
 				}
+				logger.info("fail to fetch:" + curURL.getURL());
 				return;
 			}
 
@@ -310,12 +305,9 @@ public class WebCrawler implements Runnable {
 					 * uploads/content/Js/Js/uploads/uploads/linkImg/
 					 * 20110329130212625.jpg是一个图片的url，但是却是一个网页
 					 */
-					if (curURL
-							.getURL()
-							.toLowerCase()
-							.trim()
-							.matches(
-									".*(\\.(js|css|ashx|bmp|gif|jpe?g|png|tiff?|ico))$")) {
+					if (curURL.getURL().matches(
+							".*(\\.(js|css|ashx|bmp|"
+									+ "gif|jpe?g|png|tiff?|ico))$")) {
 						return;
 					}
 
@@ -356,7 +348,7 @@ public class WebCrawler implements Runnable {
 					if (contentType.contains("javascript")
 							|| contentType.contains("css")) {
 						List<WebURL> toSchedule = new ArrayList<WebURL>();
-					
+
 						int maxCrawlDepth = myController.getConfig()
 								.getMaxDepthOfCrawling();
 						for (WebURL webURL : ExtractLinks.getUrlFromJsCSS(page

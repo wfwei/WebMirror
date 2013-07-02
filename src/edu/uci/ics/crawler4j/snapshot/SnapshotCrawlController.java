@@ -16,17 +16,13 @@ public class SnapshotCrawlController {
 
 	private static Logger LOG = Logger.getLogger(SnapshotCrawlController.class);
 
-	public static void runCrawler(String crawlUrl) {
+	public static void runCrawler() {
 
 		SnapshotConfig config = SnapshotConfig.getConf();
 		config.initFromFile();
-		config.initFromDB();
-		if (crawlUrl != null)
-			config.getCrawlURL().setURL(crawlUrl);
 
 		if (!config.isResumableCrawling()) {
-			String fullValidDomain = UrlRel.getFullValidDomain(config
-					.getCrawlURL());
+			String fullValidDomain = UrlRel.getDataDir(config.getCrawlURL());
 			DeleteFileOrDir.delete(config.getSnapshotIndex() + fullValidDomain);
 		}
 
@@ -36,11 +32,17 @@ public class SnapshotCrawlController {
 		RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig,
 				pageFetcher);
 		try {
+			int maxDepth = config.getMaxDepthOfCrawling();
+			// 检测到第i层，需要将第i+1层的资源都下载下来，所以层数加一
+			if (maxDepth > -1) {
+				config.setMaxDepthOfCrawling(maxDepth + 1);
+			}
+			LOG.info("当前爬虫配置:\n" + config);
 			CrawlController controller = new CrawlController(config,
 					pageFetcher, robotstxtServer);
 			controller.addSeed(config.getCrawlURL().getURL());
 			// run crawler
-			controller.start(SnapshotCrawler.class,
+			controller.startNonBlocking(SnapshotCrawler.class,
 					config.getNumberOfCrawlers());
 
 			// controller.startNonBlocking(SnapshotCrawler.class,
@@ -54,12 +56,13 @@ public class SnapshotCrawlController {
 			// controller.waitUntilFinish();
 		} catch (Exception e) {
 			LOG.error("fail to start snapshotcrawler");
+			e.printStackTrace();
 		}
 
 	}
 
 	public static void main(String[] args) throws Exception {
-		runCrawler(null);
+		runCrawler();
 	}
 
 }

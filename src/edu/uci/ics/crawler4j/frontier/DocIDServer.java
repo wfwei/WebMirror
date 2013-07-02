@@ -31,15 +31,17 @@ import edu.uci.ics.crawler4j.util.Util;
 
 public class DocIDServer extends Configurable {
 
-	protected static final Logger logger = Logger.getLogger(DocIDServer.class.getName());
-	
+	protected static final Logger logger = Logger.getLogger(DocIDServer.class
+			.getName());
+
 	protected Database docIDsDB = null;
-	
+
 	protected final Object mutex = new Object();
 
 	protected int lastDocID;
 
-	public DocIDServer(Environment env, CrawlConfig config) throws DatabaseException {
+	public DocIDServer(Environment env, CrawlConfig config)
+			throws DatabaseException {
 		super(config);
 		DatabaseConfig dbConfig = new DatabaseConfig();
 		dbConfig.setAllowCreate(true);
@@ -49,7 +51,8 @@ public class DocIDServer extends Configurable {
 		if (config.isResumableCrawling()) {
 			int docCount = getDocCount();
 			if (docCount > 0) {
-				logger.info("Loaded " + docCount + " URLs that had been detected in previous crawl.");
+				logger.info("Loaded " + docCount
+						+ " URLs that had been detected in previous crawl.");
 				lastDocID = docCount;
 			}
 		} else {
@@ -59,10 +62,12 @@ public class DocIDServer extends Configurable {
 
 	/**
 	 * Returns the docid of an already seen url.
-     *
-     * @param url the URL for which the docid is returned.
-     * @return the docid of the url if it is seen before. Otherwise -1 is returned.
-     */
+	 * 
+	 * @param url
+	 *            the URL for which the docid is returned.
+	 * @return the docid of the url if it is seen before. Otherwise -1 is
+	 *         returned.
+	 */
 	public int getDocId(String url) {
 		synchronized (mutex) {
 			if (docIDsDB == null) {
@@ -74,7 +79,8 @@ public class DocIDServer extends Configurable {
 				DatabaseEntry key = new DatabaseEntry(url.getBytes());
 				result = docIDsDB.get(null, key, value, null);
 
-				if (result == OperationStatus.SUCCESS && value.getData().length > 0) {
+				if (result == OperationStatus.SUCCESS
+						&& value.getData().length > 0) {
 					return Util.byteArray2Int(value.getData());
 				}
 			} catch (Exception e) {
@@ -87,14 +93,16 @@ public class DocIDServer extends Configurable {
 	public int getNewDocID(String url) {
 		synchronized (mutex) {
 			try {
-				// Make sure that we have not already assigned a docid for this URL
+				// Make sure that we have not already assigned a docid for this
+				// URL
 				int docid = getDocId(url);
 				if (docid > 0) {
 					return docid;
 				}
 
 				lastDocID++;
-				docIDsDB.put(null, new DatabaseEntry(url.getBytes()), new DatabaseEntry(Util.int2ByteArray(lastDocID)));
+				docIDsDB.put(null, new DatabaseEntry(url.getBytes()),
+						new DatabaseEntry(Util.int2ByteArray(lastDocID)));
 				return lastDocID;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -102,27 +110,30 @@ public class DocIDServer extends Configurable {
 			return -1;
 		}
 	}
-	
+
 	public void addUrlAndDocId(String url, int docId) throws Exception {
 		synchronized (mutex) {
 			if (docId <= lastDocID) {
-				throw new Exception("Requested doc id: " + docId + " is not larger than: " + lastDocID);
+				throw new Exception("Requested doc id: " + docId
+						+ " is not larger than: " + lastDocID);
 			}
-			
+
 			// Make sure that we have not already assigned a docid for this URL
 			int prevDocid = getDocId(url);
 			if (prevDocid > 0) {
 				if (prevDocid == docId) {
 					return;
 				}
-				throw new Exception("Doc id: " + prevDocid + " is already assigned to URL: " + url);
+				throw new Exception("Doc id: " + prevDocid
+						+ " is already assigned to URL: " + url);
 			}
-			
-			docIDsDB.put(null, new DatabaseEntry(url.getBytes()), new DatabaseEntry(Util.int2ByteArray(docId)));
+
+			docIDsDB.put(null, new DatabaseEntry(url.getBytes()),
+					new DatabaseEntry(Util.int2ByteArray(docId)));
 			lastDocID = docId;
 		}
 	}
-	
+
 	public boolean isSeenBefore(String url) {
 		return getDocId(url) != -1;
 	}

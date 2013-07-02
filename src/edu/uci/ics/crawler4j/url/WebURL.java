@@ -47,6 +47,13 @@ public class WebURL implements Serializable {
 	private String anchor;
 	private byte priority;
 
+	public WebURL(String url) {
+		this.setURL(url);
+	}
+
+	public WebURL() {
+	}
+
 	/**
 	 * Returns the unique document id assigned to this Url.
 	 */
@@ -89,7 +96,12 @@ public class WebURL implements Serializable {
 
 		int domainStartIdx = url.indexOf("//") + 2;
 		int domainEndIdx = url.indexOf('/', domainStartIdx);
-		if (domainStartIdx >= domainEndIdx || domainStartIdx<2)
+		if (domainStartIdx >= 2 && domainEndIdx == -1) {
+			url = url + "/";
+			this.url = url;
+			domainEndIdx = url.indexOf('/', domainStartIdx);
+		}
+		if (domainStartIdx >= domainEndIdx || domainStartIdx < 2)
 			return;
 		domain = url.substring(domainStartIdx, domainEndIdx);
 		/**

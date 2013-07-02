@@ -11,14 +11,29 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class SnapshotConfig extends CrawlConfig {
 	private static final Logger LOG = Logger.getLogger(SnapshotConfig.class);
 
+	private long hostId = 0;
 	private WebURL crawlURL = new WebURL();
-	private String snapshotRoot = "D:/temp";
-	private String snapshotPage = snapshotRoot + "/snapshot/";
-	private String snapshotIndex = snapshotRoot + "/index/";
+	private String snapshotRoot = "D:/tmp";
+	private String snapshotPage = snapshotRoot + "/index/";
+	private String snapshotIndex = snapshotRoot + "/snapshot/";
+	private String serverName = "localhost"; // TODO fixthis
+	private String serverRoot = "/localFile/";
 	private int numberOfCrawlers = 1;
 	private boolean robotsEnabled = false;
 	private boolean crossSubDomains = true;
 	private boolean crossPorts = true;
+
+	private final int maxTaskDepth = 6;
+
+	public String toString() {
+		return String
+				.format("CrawlerConfig:{hostId:%s, crawlURL:%s, max_depth:%s, snapshotRoot:%s, serverRoot:%s, numberOfCrawlers:%s, crossSubDomains:%s, crossPorts:%s, resumableCrawling:%s, politeness_delay:%s}",
+						this.getHostId(), this.getCrawlURL(),
+						this.getMaxDepthOfCrawling(), this.getSnapshotRoot(),
+						this.getServerRoot(), this.getNumberOfCrawlers(),
+						this.isCrossPorts(), this.isCrossPorts(),
+						this.isResumableCrawling(), this.getPolitenessDelay());
+	}
 
 	private static final SnapshotConfig config = new SnapshotConfig();
 
@@ -27,11 +42,6 @@ public class SnapshotConfig extends CrawlConfig {
 
 	public static SnapshotConfig getConf() {
 		return config;
-	}
-
-	public void initFromDB() {
-		// TODO or never do
-		System.out.println("not implemented yet");
 	}
 
 	public void initFromFile() {
@@ -44,16 +54,20 @@ public class SnapshotConfig extends CrawlConfig {
 			this.setNumberOfCrawlers(Integer.parseInt(prop
 					.getProperty("num_of_crawlers")));
 			this.setSnapshotRoot(prop.getProperty("snapshot_root"));
-			this.setCrawlStorageFolder(this.getSnapshotRoot());
+			this.setCrawlStorageFolder(this.getSnapshotRoot() + "-1/");
 			this.setSnapshotIndex(this.getSnapshotRoot() + "/index/");
 			this.setSnapshotPage(this.getSnapshotRoot() + "/snapshot/");
+			this.setServerRoot(prop.getProperty("server_root"));
 			this.getCrawlURL().setURL(prop.getProperty("crawl_domains"));
+
 			this.setMaxDepthOfCrawling(Integer.parseInt(prop
 					.getProperty("max_depth")));
+
 			this.setPolitenessDelay(Integer.parseInt(prop
 					.getProperty("politeness_delay")));
 			this.setRobotsEnabled(prop.getProperty("robots_status").contains(
 					"true"));
+
 			this.setCrossSubDomains(prop.getProperty("cross_sub_domains")
 					.contains("true"));
 			this.setCrossPorts(prop.getProperty("cross_ports").contains("true"));
@@ -61,8 +75,6 @@ public class SnapshotConfig extends CrawlConfig {
 					"include_binary_content_in_in_crawling").contains("true"));
 			this.setResumableCrawling(prop.getProperty("resumableCrawling")
 					.contains("true"));
-//			this.setProxyHost("localhost");
-//			this.setProxyPort(8087);
 			is.close();
 		} catch (Exception e) {
 			LOG.warn("fail to load crawler4j.properties!");
@@ -117,6 +129,14 @@ public class SnapshotConfig extends CrawlConfig {
 		this.snapshotRoot = snapshotRoot;
 	}
 
+	public String getServerRoot() {
+		return serverRoot;
+	}
+
+	public void setServerRoot(String serverRoot) {
+		this.serverRoot = serverRoot;
+	}
+
 	public boolean isCrossSubDomains() {
 		return crossSubDomains;
 	}
@@ -131,6 +151,14 @@ public class SnapshotConfig extends CrawlConfig {
 
 	public void setCrossPorts(boolean crossPorts) {
 		this.crossPorts = crossPorts;
+	}
+
+	public int getMaxTaskDepth() {
+		return maxTaskDepth;
+	}
+
+	public long getHostId() {
+		return hostId;
 	}
 
 }

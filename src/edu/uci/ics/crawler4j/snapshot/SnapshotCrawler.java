@@ -41,29 +41,33 @@ public class SnapshotCrawler extends WebCrawler {
 		WebURL weburl = page.getWebURL();
 		byte[] contentData = page.getContentData();
 
-		String fullValidDomain = UrlRel.getFullValidDomain(weburl);
-		String validPath = UrlRel.appendFileToPath(weburl.getPath());
+		String locDir = UrlRel.getDataDir(weburl);
+		String locPath = UrlRel.appendFileToPath(weburl.getPath());
 		String fullLocPath = SnapshotConfig.getConf().getSnapshotPage() + "/"
-				+ fullValidDomain + validPath;
+				+ locDir + locPath;
+		String serverRoot = SnapshotConfig.getConf().getServerRoot();
+		String serverPath = serverRoot + locDir + locPath;
 
 		// 转码并重定向链接
 		if (page.getContentType().contains("text/html")) {
 			HtmlParseData htmlpd = (HtmlParseData) page.getParseData();
-			String nHtml = UrlRel.redirectUrls(htmlpd.getHtml(), weburl,
-					validPath, "html");
+			String nHtml = UrlRel.redirectUrls4Server(htmlpd.getHtml(), weburl,
+					serverRoot, "html");
 			nHtml = nHtml.replaceAll(
 					"(<.*?charset\\s*=\\s*['\"]?)[^'\";,\\s>]*?(['\";,\\s>])",
 					"$1utf-8$2");
+			nHtml = nHtml.replace("window.print()", "");
 			contentData = nHtml.getBytes(UTF8);
 		} else if (page.getContentType().contains("javascript")) {
 			String content = page.getParseData().toString();
-			content = UrlRel.redirectUrls(content, weburl, validPath,
+			content = UrlRel.redirectUrls4Server(content, weburl, serverRoot,
 					"javascript");
+			content = content.replace("window.print()", "");
 			contentData = content.getBytes(UTF8);
 		} else if (page.getContentType().contains("css")) {
 			String content = page.getParseData().toString();
-			content = UrlRel.redirectUrls(content, weburl, validPath, "css")
-					.replaceAll("@charset[^;]*;", "@charset \"utf-8\";");
+			content = UrlRel.redirectUrls4Server(content, weburl, serverRoot,
+					"css").replaceAll("@charset[^;]*;", "@charset \"utf-8\";");
 			contentData = content.getBytes(UTF8);
 		} else if (page.getContentType().contains("image")) {
 			// 包括image/png;image/jpeg等等
@@ -75,6 +79,7 @@ public class SnapshotCrawler extends WebCrawler {
 				return;
 			}
 		} else {
+
 			/**
 			 * 跳过的类型有：text/xml,text/plain,以及非js|css的application类型
 			 */
@@ -83,18 +88,18 @@ public class SnapshotCrawler extends WebCrawler {
 			return;
 		}
 
-		String idxFileDir = SnapshotConfig.getConf().getSnapshotIndex()
-				+ fullValidDomain.replaceAll("_MH_[\\d]*", "") + "/";
+		String idxFileDir = UrlRel.getIdxDir(weburl);
 		String filetype = fullLocPath
 				.substring(fullLocPath.lastIndexOf('.') + 1);
 		int depth = weburl.getDepth();
-		if (depth > 6)
-			depth = 6;
+		if (depth > SnapshotConfig.getConf().getMaxTaskDepth())
+			depth = SnapshotConfig.getConf().getMaxTaskDepth();
 		String idxDesFile = idxFileDir + filetype + depth + ".idx";
-		String idxDataItem = fullLocPath + "\t" + weburl.getURL() + "\n";
+		String idxDataItem = serverPath + "\t" + weburl.getURL() + "\n";
+
 		WriteResult.writeIdxFile(idxDataItem, idxDesFile);
 		WriteResult.writeBytesToFile(contentData, fullLocPath);
 		LOG.info("Stored: " + weburl.getURL());
-
 	}
+
 }
