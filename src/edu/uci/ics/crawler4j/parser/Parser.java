@@ -198,7 +198,6 @@ public class Parser extends Configurable {
 			if (!hrefWithoutProtocol.contains("javascript:")
 					&& !hrefWithoutProtocol.contains("@")) {
 				String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
-				// System.out.println("canonical url:\t"+url);
 				if (url != null) {
 					WebURL webURL = new WebURL();
 					webURL.setURL(url);

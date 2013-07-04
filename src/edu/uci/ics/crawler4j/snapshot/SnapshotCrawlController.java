@@ -18,12 +18,11 @@ public class SnapshotCrawlController {
 
 	public static void runCrawler() {
 
-		SnapshotConfig config = SnapshotConfig.getConf();
+		SnapshotConfig config = new SnapshotConfig();
 		config.initFromFile();
 
 		if (!config.isResumableCrawling()) {
-			String fullValidDomain = UrlRel.getDataDir(config.getCrawlURL());
-			DeleteFileOrDir.delete(config.getSnapshotIndex() + fullValidDomain);
+			DeleteFileOrDir.delete(config.getSnapshotIndex());
 		}
 
 		PageFetcher pageFetcher = new PageFetcher(config);

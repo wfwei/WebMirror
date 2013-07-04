@@ -46,6 +46,11 @@ public class WebURL implements Serializable {
 	private String shortPath;
 	private String anchor;
 	private byte priority;
+	private String fullDomainAndPort;
+
+	public String getFullDomainAndPort() {
+		return fullDomainAndPort;
+	}
 
 	public WebURL(String url) {
 		this.setURL(url);
@@ -104,6 +109,7 @@ public class WebURL implements Serializable {
 		if (domainStartIdx >= domainEndIdx || domainStartIdx < 2)
 			return;
 		domain = url.substring(domainStartIdx, domainEndIdx);
+		fullDomainAndPort = domain;
 		/**
 		 * @author WangFengwei 添加端口支持
 		 */

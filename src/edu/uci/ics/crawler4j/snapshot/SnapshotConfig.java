@@ -11,13 +11,16 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class SnapshotConfig extends CrawlConfig {
 	private static final Logger LOG = Logger.getLogger(SnapshotConfig.class);
 
-	private long hostId = 0;
+	private long crawlId = 0;
 	private WebURL crawlURL = new WebURL();
-	private String snapshotRoot = "D:/tmp";
-	private String snapshotPage = snapshotRoot + "/index/";
-	private String snapshotIndex = snapshotRoot + "/snapshot/";
-	private String serverName = "localhost"; // TODO fixthis
-	private String serverRoot = "/localFile/";
+	private String snapshotRoot = "D:/tmp/";
+	private String snapshotPage = snapshotRoot + "snapshot/" + crawlId + "/";
+	private String snapshotIndex = snapshotRoot + "index/" + crawlId + "/";
+
+	private String serverName = "http://localhost/";
+	private String serverRoot = "localFile/";
+	private String serverNameRoot = serverName + serverRoot + crawlId + "/";
+
 	private int numberOfCrawlers = 1;
 	private boolean robotsEnabled = false;
 	private boolean crossSubDomains = true;
@@ -27,21 +30,12 @@ public class SnapshotConfig extends CrawlConfig {
 
 	public String toString() {
 		return String
-				.format("CrawlerConfig:{hostId:%s, crawlURL:%s, max_depth:%s, snapshotRoot:%s, serverRoot:%s, numberOfCrawlers:%s, crossSubDomains:%s, crossPorts:%s, resumableCrawling:%s, politeness_delay:%s}",
-						this.getHostId(), this.getCrawlURL(),
+				.format("CrawlerConfig:{crawlId:%s, crawlURL:%s, max_depth:%s, snapshotRoot:%s, serverRoot:%s, numberOfCrawlers:%s, crossSubDomains:%s, crossPorts:%s, resumableCrawling:%s, politeness_delay:%s}",
+						this.getCrawlId(), this.getCrawlURL(),
 						this.getMaxDepthOfCrawling(), this.getSnapshotRoot(),
 						this.getServerRoot(), this.getNumberOfCrawlers(),
 						this.isCrossPorts(), this.isCrossPorts(),
 						this.isResumableCrawling(), this.getPolitenessDelay());
-	}
-
-	private static final SnapshotConfig config = new SnapshotConfig();
-
-	private SnapshotConfig() {
-	}
-
-	public static SnapshotConfig getConf() {
-		return config;
 	}
 
 	public void initFromFile() {
@@ -51,15 +45,23 @@ public class SnapshotConfig extends CrawlConfig {
 					.getResourceAsStream("/crawler4j.properties");
 			Properties prop = new Properties();
 			prop.load(is);
+
+			this.setCrawlId(Integer.parseInt(prop.getProperty("crawl_id")));
+			this.getCrawlURL().setURL(prop.getProperty("crawl_domains"));
+			this.setSnapshotRoot(prop.getProperty("snapshot_root"));
+			// generated values
+			this.setCrawlStorageFolder(this.getSnapshotRoot() + "frontier/"
+					+ this.getCrawlId() + "/");
+			this.setSnapshotIndex(this.getSnapshotRoot() + "index/"
+					+ this.getCrawlId() + "/");
+			this.setSnapshotPage(this.getSnapshotRoot() + "snapshot/"
+					+ this.getCrawlId() + "/");
+			this.setServerName(prop.getProperty("server_name"));
+			this.setServerRoot(prop.getProperty("server_root"));
+			this.setServerNameRoot(this.getServerName() + this.getServerRoot()
+					+ this.getCrawlId() + "/");
 			this.setNumberOfCrawlers(Integer.parseInt(prop
 					.getProperty("num_of_crawlers")));
-			this.setSnapshotRoot(prop.getProperty("snapshot_root"));
-			this.setCrawlStorageFolder(this.getSnapshotRoot() + "-1/");
-			this.setSnapshotIndex(this.getSnapshotRoot() + "/index/");
-			this.setSnapshotPage(this.getSnapshotRoot() + "/snapshot/");
-			this.setServerRoot(prop.getProperty("server_root"));
-			this.getCrawlURL().setURL(prop.getProperty("crawl_domains"));
-
 			this.setMaxDepthOfCrawling(Integer.parseInt(prop
 					.getProperty("max_depth")));
 
@@ -73,7 +75,7 @@ public class SnapshotConfig extends CrawlConfig {
 			this.setCrossPorts(prop.getProperty("cross_ports").contains("true"));
 			this.setIncludeBinaryContentInCrawling(prop.getProperty(
 					"include_binary_content_in_in_crawling").contains("true"));
-			this.setResumableCrawling(prop.getProperty("resumableCrawling")
+			this.setResumableCrawling(prop.getProperty("resumable_crawling")
 					.contains("true"));
 			is.close();
 		} catch (Exception e) {
@@ -81,36 +83,12 @@ public class SnapshotConfig extends CrawlConfig {
 		}
 	}
 
-	public int getNumberOfCrawlers() {
-		return numberOfCrawlers;
+	public long getCrawlId() {
+		return crawlId;
 	}
 
-	public void setNumberOfCrawlers(int numberOfCrawlers) {
-		this.numberOfCrawlers = numberOfCrawlers;
-	}
-
-	public boolean isRobotsEnabled() {
-		return robotsEnabled;
-	}
-
-	public void setRobotsEnabled(boolean robotsEnabled) {
-		this.robotsEnabled = robotsEnabled;
-	}
-
-	public String getSnapshotPage() {
-		return snapshotPage;
-	}
-
-	public void setSnapshotPage(String snapshotPage) {
-		this.snapshotPage = snapshotPage;
-	}
-
-	public String getSnapshotIndex() {
-		return snapshotIndex;
-	}
-
-	public void setSnapshotIndex(String snapshotIndex) {
-		this.snapshotIndex = snapshotIndex;
+	public void setCrawlId(long crawlId) {
+		this.crawlId = crawlId;
 	}
 
 	public WebURL getCrawlURL() {
@@ -129,12 +107,60 @@ public class SnapshotConfig extends CrawlConfig {
 		this.snapshotRoot = snapshotRoot;
 	}
 
+	public String getSnapshotPage() {
+		return snapshotPage;
+	}
+
+	public void setSnapshotPage(String snapshotPage) {
+		this.snapshotPage = snapshotPage;
+	}
+
+	public String getSnapshotIndex() {
+		return snapshotIndex;
+	}
+
+	public void setSnapshotIndex(String snapshotIndex) {
+		this.snapshotIndex = snapshotIndex;
+	}
+
+	public String getServerName() {
+		return serverName;
+	}
+
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
+	}
+
 	public String getServerRoot() {
 		return serverRoot;
 	}
 
 	public void setServerRoot(String serverRoot) {
 		this.serverRoot = serverRoot;
+	}
+
+	public String getServerNameRoot() {
+		return serverNameRoot;
+	}
+
+	public void setServerNameRoot(String serverNameRoot) {
+		this.serverNameRoot = serverNameRoot;
+	}
+
+	public int getNumberOfCrawlers() {
+		return numberOfCrawlers;
+	}
+
+	public void setNumberOfCrawlers(int numberOfCrawlers) {
+		this.numberOfCrawlers = numberOfCrawlers;
+	}
+
+	public boolean isRobotsEnabled() {
+		return robotsEnabled;
+	}
+
+	public void setRobotsEnabled(boolean robotsEnabled) {
+		this.robotsEnabled = robotsEnabled;
 	}
 
 	public boolean isCrossSubDomains() {
@@ -155,10 +181,6 @@ public class SnapshotConfig extends CrawlConfig {
 
 	public int getMaxTaskDepth() {
 		return maxTaskDepth;
-	}
-
-	public long getHostId() {
-		return hostId;
 	}
 
 }

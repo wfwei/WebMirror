@@ -203,7 +203,7 @@ public class URLCanonicalizer {
 	 * Percent-encode values according the RFC 3986. The built-in Java
 	 * URLEncoder does not encode according to the RFC, so we make the extra
 	 * replacements.
-	 * 
+	 * TODO WHY DO THIS
 	 * @param string
 	 *            Decoded string.
 	 * @return Encoded string per RFC 3986.

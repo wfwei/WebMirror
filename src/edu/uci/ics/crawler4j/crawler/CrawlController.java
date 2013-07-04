@@ -23,6 +23,7 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.frontier.DocIDServer;
 import edu.uci.ics.crawler4j.frontier.Frontier;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import edu.uci.ics.crawler4j.snapshot.SnapshotConfig;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
 import edu.uci.ics.crawler4j.util.io.IO;
@@ -152,7 +153,9 @@ public class CrawlController extends Configurable {
 			final List<T> crawlers = new ArrayList<T>();
 
 			for (int i = 1; i <= numberOfCrawlers; i++) {
-				T crawler = _c.newInstance();
+				T crawler = _c.getConstructor(SnapshotConfig.class).newInstance(
+						config);
+
 				Thread thread = new Thread(crawler, "Crawler " + i);
 				crawler.setThread(thread);
 				crawler.init(i, this);
