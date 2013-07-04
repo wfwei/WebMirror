@@ -101,9 +101,6 @@ public class WebCrawler implements Runnable {
 	 */
 	private boolean isWaitingForNewURLs;
 
-	/** minimum url depth to crawl */
-	private int minDepth;
-
 	/**
 	 * Initializes the current instance of the crawler
 	 * 
@@ -121,7 +118,6 @@ public class WebCrawler implements Runnable {
 		this.parser = new Parser(crawlController.getConfig());
 		this.myController = crawlController;
 		this.isWaitingForNewURLs = false;
-		this.minDepth = -1;
 	}
 
 	/**
@@ -174,11 +170,6 @@ public class WebCrawler implements Runnable {
 		return null;
 	}
 
-	/** The minimum depth of url in queue */
-	public int getMinDepth() {
-		return minDepth;
-	}
-
 	public void run() {
 		onStart();
 		while (true) {
@@ -187,7 +178,6 @@ public class WebCrawler implements Runnable {
 			frontier.getNextURLs(50, assignedURLs);
 			isWaitingForNewURLs = false;
 			if (assignedURLs.size() == 0) {
-				minDepth++; // TODO
 				if (frontier.isFinished()) {
 					return;
 				}
@@ -199,7 +189,6 @@ public class WebCrawler implements Runnable {
 			} else {
 				for (WebURL curURL : assignedURLs) {
 					if (curURL != null) {
-						this.minDepth = curURL.getDepth();
 						processPage(curURL);
 						frontier.setProcessed(curURL);
 					}

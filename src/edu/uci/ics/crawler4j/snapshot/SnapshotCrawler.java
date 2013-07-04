@@ -112,6 +112,11 @@ public class SnapshotCrawler extends WebCrawler {
 			nHtml = nHtml.replaceAll(
 					"(<.*?charset\\s*=\\s*['\"]?)[^'\";,\\s>]*?(['\";,\\s>])",
 					"$1utf-8$2");
+			if (!MetaCharset.matcher(nHtml).find()) {
+				nHtml = nHtml
+						.replace("<head>",
+								"<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">");
+			}
 			nHtml = nHtml.replace("window.print()", "");// 渲染的时候会出错，所以全部删掉
 			contentData = nHtml.getBytes(UTF8);
 		} else if (page.getContentType().contains("javascript")) {
@@ -242,16 +247,6 @@ public class SnapshotCrawler extends WebCrawler {
 		return path;
 	}
 
-	/**
-	 * 将str中的:?*"<>|\8个符号进行替换 MARK 使用特殊字符要注意，开始用的是#号，但是#出现在url中会以数字代替，就是一个bug
-	 * 
-	 * @param str
-	 * @return
-	 */
-	// private static String replaceInvalidChar(String str) {
-	//
-	// }
-
 	// urlsInHtml urlsInJs urlsInCss 查找文件中的url，注意括号
 	private static final Pattern urlsInHtml = Pattern.compile(
 			"((href|src)\\s*=\\s*['\"]\\s*)([^\\s'\">]*)([\\s'\">])",
@@ -263,7 +258,9 @@ public class SnapshotCrawler extends WebCrawler {
 	private static final Pattern urlsInCss = Pattern.compile(
 			"((url)\\s*[(]['\"]?)([^)'\"]*)(['\"]?[)])",
 			Pattern.CASE_INSENSITIVE);
-
+	private static final Pattern MetaCharset = Pattern
+			.compile("<meta.*?charset.*>");
+	
 	private static final Pattern filters = Pattern.compile(
 			".*(\\.(mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf"
 					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$",
