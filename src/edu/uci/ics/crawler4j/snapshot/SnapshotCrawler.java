@@ -3,6 +3,7 @@ package edu.uci.ics.crawler4j.snapshot;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,14 +36,13 @@ public class SnapshotCrawler extends WebCrawler {
 			if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY
 					|| statusCode == HttpStatus.SC_MOVED_TEMPORARILY)
 				return;
-			LOG.warn("page error: " + statusCode + "\t" + statusDescription
+			LOG.warn("Http error: " + statusCode + "\t" + statusDescription
 					+ "\t" + webUrl);
 		}
 	}
 
 	@Override
 	public boolean shouldVisit(WebURL url) {
-
 		WebURL context = config.getCrawlURL();
 
 		String href = url.getURL().toLowerCase();
@@ -69,6 +69,25 @@ public class SnapshotCrawler extends WebCrawler {
 		}
 
 		if (url.getDomain().equals(context.getDomain())) {
+			double threshold = config.getUrlSimThreshold();
+			// threshold>0 说明要求过滤相似url
+			if (threshold > 0) {
+				// Short curDepth = url.getDepth();
+				String curUrl = url.getURL();
+				List<String> urlsFetched = myController.getUrlsFetched();
+				// 过滤相似度大于threshold的url TODO use LSH
+				// urlsFetched 只增不减，可以使用这样的便利方式避免同步操作
+				for (int i = 0; i < urlsFetched.size(); i++) {
+					double sim = UrlSim.calcUrlSim(curUrl, urlsFetched.get(i));
+					if (sim >= threshold) {
+						UrlSim.LOG.info("Filter Url:" + curUrl + "\t"
+								+ urlsFetched.get(i));
+						return false;
+					}
+				}
+				// urlsFetched是synchronizedList
+				urlsFetched.add(curUrl);
+			}
 			return true;
 		}
 
@@ -186,7 +205,8 @@ public class SnapshotCrawler extends WebCrawler {
 			} else {
 				/* 匹配到的链接不规范，忽略之 */
 				cweburl.setURL("http://www.fakeUrl.com/");
-				LOG.debug("curl不规范：\t" + curl + "\t<--\t" + urlMatch);
+				LOG.debug("curl不规范：parsed:\t" + curl + "\toriginal:\t"
+						+ urlMatch);
 			}
 			/* 判断是否redirect */
 			String replacement = null;
@@ -260,7 +280,7 @@ public class SnapshotCrawler extends WebCrawler {
 			Pattern.CASE_INSENSITIVE);
 	private static final Pattern MetaCharset = Pattern
 			.compile("<meta.*?charset.*>");
-	
+
 	private static final Pattern filters = Pattern.compile(
 			".*(\\.(mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf"
 					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$",

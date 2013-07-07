@@ -26,6 +26,8 @@ public class SnapshotConfig extends CrawlConfig {
 	private boolean crossSubDomains = true;
 	private boolean crossPorts = true;
 
+	private double urlSimThreshold = UrlSim.DefaulThreshold;
+
 	private final int maxTaskDepth = 6;
 
 	public String toString() {
@@ -77,6 +79,9 @@ public class SnapshotConfig extends CrawlConfig {
 					"include_binary_content_in_in_crawling").contains("true"));
 			this.setResumableCrawling(prop.getProperty("resumable_crawling")
 					.contains("true"));
+
+			this.setUrlSimThreshold(Double.parseDouble(prop
+					.getProperty("url_sim_threshold")));
 			is.close();
 		} catch (Exception e) {
 			LOG.warn("fail to load crawler4j.properties!");
@@ -181,6 +186,14 @@ public class SnapshotConfig extends CrawlConfig {
 
 	public int getMaxTaskDepth() {
 		return maxTaskDepth;
+	}
+
+	public double getUrlSimThreshold() {
+		return urlSimThreshold;
+	}
+
+	public void setUrlSimThreshold(double urlSimThreshold) {
+		this.urlSimThreshold = urlSimThreshold;
 	}
 
 }

@@ -19,6 +19,7 @@ package edu.uci.ics.crawler4j.crawler;
 
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.frontier.DocIDServer;
 import edu.uci.ics.crawler4j.frontier.Frontier;
@@ -32,6 +33,7 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,6 +46,17 @@ public class CrawlController extends Configurable {
 
 	private static final Logger logger = Logger
 			.getLogger(CrawlController.class);
+
+	/**
+	 * store <depth, urls to fetch>
+	 * 
+	 * MARK special synchronzation
+	 */
+	protected ArrayList<String> urlsFetched = new ArrayList<String>();
+
+	public List<String> getUrlsFetched() {
+		return Collections.synchronizedList(urlsFetched);
+	}
 
 	/**
 	 * The 'customData' object can be used for passing custom crawl-related
@@ -153,8 +166,8 @@ public class CrawlController extends Configurable {
 			final List<T> crawlers = new ArrayList<T>();
 
 			for (int i = 1; i <= numberOfCrawlers; i++) {
-				T crawler = _c.getConstructor(SnapshotConfig.class).newInstance(
-						config);
+				T crawler = _c.getConstructor(SnapshotConfig.class)
+						.newInstance(config);
 
 				Thread thread = new Thread(crawler, "Crawler " + i);
 				crawler.setThread(thread);
