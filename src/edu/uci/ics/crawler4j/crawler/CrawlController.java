@@ -24,6 +24,7 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.frontier.DocIDServer;
 import edu.uci.ics.crawler4j.frontier.Frontier;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import edu.uci.ics.crawler4j.snapshot.LsUrlMap;
 import edu.uci.ics.crawler4j.snapshot.SnapshotConfig;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
@@ -52,11 +53,16 @@ public class CrawlController extends Configurable {
 	 * 
 	 * MARK special synchronzation
 	 */
-	protected ArrayList<String> urlsFetched = new ArrayList<String>();
+	// protected ArrayList<String> urlsFetched = new ArrayList<String>();
+	protected LsUrlMap urlsForFilter = new LsUrlMap();
 
-	public List<String> getUrlsFetched() {
-		return Collections.synchronizedList(urlsFetched);
+	public LsUrlMap getUrlsForFilter() {
+		return urlsForFilter;
 	}
+
+	// public List<String> getUrlsFetched() {
+	// return Collections.synchronizedList(urlsFetched);
+	// }
 
 	/**
 	 * The 'customData' object can be used for passing custom crawl-related

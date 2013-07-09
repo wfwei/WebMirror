@@ -25,18 +25,52 @@ public class UrlSimTest {
 			}
 		}
 	}
-
-	public static void testCalcUrlSim() {
-		String[] simUrls = {
+	public static void testCalcSimSig() {
+		String[] invalidUrls = { "http://news.163.com/JB5.html",
+				"http://auto.sohu.com", "http://auto.sohu.com/" };
+		String[] sameSigUrls = {
+				"http://www.cdpf.org.cn/dangj/column216206111/;http://www.cdpf.org.cn/dangj/column216206148/",
 				"http://news.163.com/13/0706/19/934EKSC300014JB5.html;http://news.163.com/13/0706/05/932VPFP200011229.html",
 				"http://auto.sohu.com/s2007/0155/s254359851/index1.shtml;http://auto.sohu.com/s2007/5730/s249066842/index2.shtml",
 				"http://auto.sohu.com/7/0903/96/column212969687.shtml;http://auto.sohu.com/7/1103/61/column216206148.shtml",
-				"http://www.spongeliu.com/xxx/123.html;http://www.spongeliu.com/xxx/456.html" };
+				"http://www.spongeliu.com/xxx/123.html;http://www.spongeliu.com/xxx/456.html",
+				"http://www.spongeliu.com/xxx/123.html;http://www.spongeliu.com/xxx/abc.html",
+				"http://www.cdpf.org.cn/dangj/zyjs.htm;http://www.cdpf.org.cn/dangj/dj.htm"
+				};
+
+		String[] notSameSigUrls = {
+				"http://v.163.com/zixun/V8GAM7JAP/V925LTCPK.html;http://v.163.com/paike/V8PV2GDG7/V925R5PG1.html",
+				"http://auto.sohu.com/s2007/0155/s254359851/index1.shtml;http://auto.sohu.com/7/1103/61/column216206148.shtml" };
+
+		for (String url : invalidUrls) {
+			System.out.println(UrlSim.calcSimSig(url) == 0);
+		}
+		for (String simUrl : sameSigUrls) {
+			String[] urls = simUrl.split(";");
+			int sig0 = UrlSim.calcSimSig(urls[0]);
+			int sig1 = UrlSim.calcSimSig(urls[1]);
+			System.out.println(sig0 == sig1 && sig0 != 0);
+		}
+		for (String simUrl : notSameSigUrls) {
+			String[] urls = simUrl.split(";");
+			int sig0 = UrlSim.calcSimSig(urls[0]);
+			int sig1 = UrlSim.calcSimSig(urls[1]);
+			System.out.println(sig0 != 0 && sig1 != 0 && sig0 != sig1);
+		}
+	}
+
+	public static void testCalcUrlSim() {
+		String[] simUrls = {"http://www.cdpf.org.cn/dangj/column216206111/;http://www.cdpf.org.cn/dangj/column216206148/",
+				"http://news.163.com/13/0706/19/934EKSC300014JB5.html;http://news.163.com/13/0706/05/932VPFP200011229.html",
+				"http://auto.sohu.com/s2007/0155/s254359851/index1.shtml;http://auto.sohu.com/s2007/5730/s249066842/index2.shtml",
+				"http://auto.sohu.com/7/0903/96/column212969687.shtml;http://auto.sohu.com/7/1103/61/column216206148.shtml",
+				"http://auto.sohu.com/7/0903?query=sffdfsdfsdfs;http://auto.sohu.com/7/0903?query=gsdfsdfsfsdas"};
 
 		String[] notSimUrls = {
 				"http://v.163.com/zixun/V8GAM7JAP/V925LTCPK.html;http://v.163.com/paike/V8PV2GDG7/V925R5PG1.html",
 				"http://auto.sohu.com/s2007/0155/s254359851/index1.shtml;http://auto.sohu.com/7/1103/61/column216206148.shtml",
-				"http://www.spongeliu.com/xxx/123.html;http://www.spongeliu.com/xxx/abc.html" };
+				"http://www.spongeliu.com/xxx/123.html;http://www.spongeliu.com/xxx/abc.html",
+				"http://www.cdpf.org.cn/dangj/zyjs.htm;http://www.cdpf.org.cn/dangj/dj.htm"};
 
 		for (String simUrl : simUrls) {
 			String[] urls = simUrl.split(";");
@@ -53,6 +87,7 @@ public class UrlSimTest {
 	public static void main(String[] args) {
 		// countIngredient("Wfw123,，王峰伟-=._");
 		// testUrlPatt();
+		testCalcSimSig();
 		testCalcUrlSim();
 	}
 }

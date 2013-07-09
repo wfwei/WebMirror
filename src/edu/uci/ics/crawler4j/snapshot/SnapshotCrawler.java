@@ -68,25 +68,23 @@ public class SnapshotCrawler extends WebCrawler {
 			return false;
 		}
 
-		if (url.getDomain().equals(context.getDomain())) {
+		if (context.getDomain().equals(url.getDomain())) {
 			double threshold = config.getUrlSimThreshold();
+			String curUrl = url.getURL();
 			// threshold>0 说明要求过滤相似url
-			if (threshold > 0) {
+			if (threshold > 0
+					&& UrlSim.calcSimSig(curUrl) != UrlSim.NO_NEED_FOR_FILER) {
 				// Short curDepth = url.getDepth();
-				String curUrl = url.getURL();
-				List<String> urlsFetched = myController.getUrlsFetched();
-				// 过滤相似度大于threshold的url TODO use LSH
-				// urlsFetched 只增不减，可以使用这样的便利方式避免同步操作
-				for (int i = 0; i < urlsFetched.size(); i++) {
-					double sim = UrlSim.calcUrlSim(curUrl, urlsFetched.get(i));
+				LsUrlMap urlsForFilter = myController.getUrlsForFilter();
+				// 过滤相似度大于threshold的url
+				for (String simUrl : urlsForFilter.getSimilar(curUrl)) {
+					double sim = UrlSim.calcUrlSim(curUrl, simUrl);
 					if (sim >= threshold) {
-						UrlSim.LOG.info("Filter Url:" + curUrl + "\t"
-								+ urlsFetched.get(i));
+						UrlSim.LOG.info("Filter Url:" + curUrl + "\t" + simUrl);
 						return false;
 					}
 				}
-				// urlsFetched是synchronizedList
-				urlsFetched.add(curUrl);
+				urlsForFilter.add(curUrl);
 			}
 			return true;
 		}

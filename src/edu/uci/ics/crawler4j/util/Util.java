@@ -88,4 +88,8 @@ public class Util {
 		}
 		return false;
 	}
+
+	public static String guessContentTypeByUrl(String url) {
+		return java.net.HttpURLConnection.guessContentTypeFromName(url);
+	}
 }

@@ -5,6 +5,12 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
+/**
+ * 判断url的结构相似性
+ * 
+ * @author WangFengwei
+ * 
+ */
 public class UrlSim {
 	public static final Logger LOG = Logger.getLogger(UrlSim.class);
 
@@ -37,45 +43,96 @@ public class UrlSim {
 	}
 
 	public static final double DefaulThreshold = 1d;
+	public static final int NO_NEED_FOR_FILER = 0;
 
+	/**
+	 * 计算url的相似性签名
+	 * 
+	 * 该方法和计算两个url相似度的方法(calcUrlSim)保持一致：url相似，签名必须相同；但签名相同，url不一定相似
+	 * 
+	 * 如果url不需要进行相似过滤，返回0，否则返回相似性签名
+	 * 
+	 */
+	public static int calcSimSig(String url) {
+		StringBuilder sb = new StringBuilder();
+		Matcher match = UrlPatt.matcher(url);
+		if (match.find()) {
+			String protocol = match.group("protocol");
+			String host = match.group("host");
+			String path = match.group("path");
+
+			if (protocol != null && host != null && path != null) {
+				path = path.substring(1);
+				if (path.endsWith("/"))
+					path = path.substring(0, path.length() - 1);
+				String[] pathDirs = path.split("/");
+				if (pathDirs.length > 1) {
+					sb.append(protocol).append(host).append(pathDirs[0])
+							.append(pathDirs.length);
+					return sb.toString().hashCode();
+				}
+			}
+		}
+
+		return NO_NEED_FOR_FILER;// no need fitering
+	}
+
+	/**
+	 * 判断urla和urlb的结构结构相似性
+	 * 
+	 * TODO url虽然很相似，但是结构还是不同的，需要考虑页面本身结构特征(1. 全掉全部文本，包括属性值 2. 去掉所有注释及in-line
+	 * tag如a,h,span,img等 3. 计算结构相似度)
+	 * 
+	 * http://www.cdpf.org.cn/2007special/2008paralympic/gjfc_2.htm
+	 * http://www.cdpf.org.cn/2007special/2008paralympic/cabb_2.htm
+	 */
 	public static double calcUrlSim(String urla, String urlb) {
-		Matcher amatch = UrlPatt.matcher(urla);
-		Matcher bmatch = UrlPatt.matcher(urlb);
+		int urlaSignature = calcSimSig(urla);
+		int urlbSignature = calcSimSig(urlb);
+		if (urlaSignature != 0 && urlaSignature == urlbSignature) {
+			Matcher amatch = UrlPatt.matcher(urla);
+			Matcher bmatch = UrlPatt.matcher(urlb);
 
-		// urla & urlb should both be valid url
-		if (amatch.find() && bmatch.find()) {
-			// miss -> match.group("protocol");
-			String ahost = amatch.group("host");
-			String bhost = bmatch.group("host");
-			// ahost & bhost should be the same
-			if (ahost != null && bhost != null && ahost.equals(bhost)) {
-				String apath = amatch.group("path");
-				String bpath = bmatch.group("path");
-				if (apath != null && bpath != null) {
-					if (apath.endsWith("/"))
-						apath = apath.substring(0, apath.length() - 1);
-					if (bpath.endsWith("/"))
-						bpath = bpath.substring(0, bpath.length() - 1);
+			// TODO 和 @calcSimSig 存在重复计算
+			// urla & urlb should both be valid url
+			if (amatch.find() && bmatch.find()) {
+				// miss -> match.group("protocol");
+				String ahost = amatch.group("host");
+				String bhost = bmatch.group("host");
+				// ahost & bhost should be the same
+				if (ahost != null && bhost != null && ahost.equals(bhost)) {
+					String apath = amatch.group("path");
+					String bpath = bmatch.group("path");
+					if (apath != null && bpath != null) {
+						if (apath.endsWith("/"))
+							apath = apath.substring(0, apath.length() - 1);
+						if (bpath.endsWith("/"))
+							bpath = bpath.substring(0, bpath.length() - 1);
 
-					String[] apathes = apath.substring(1).split("/");
-					String[] bpathes = bpath.substring(1).split("/");
-					// path depth should > 1 and length should be equal
-					if (apathes.length > 1 && apathes.length == bpathes.length) {
-						// path depth 0 should be eaqual
-						if (apathes[0].equals(bpathes[0])) {
-							// path depthes [1,n-1] should be equal ignore
-							// numbers
-							boolean ok = true;
-							for (int i = 1; i < apathes.length - 1; i++) {
-								if (!apathes[i].replaceAll("\\d", "").equals(
-										bpathes[i].replaceAll("\\d", "")))
-									ok = false;
-							}
-							if (ok) {
-								// last path depth shoud similar in structure
-								if (simInStructure(apathes[apathes.length - 1],
-										bpathes[bpathes.length - 1]))
-									return 1d;
+						String[] apathes = apath.substring(1).split("/");
+						String[] bpathes = bpath.substring(1).split("/");
+						// path depth should > 1 and length should be equal
+						if (apathes.length > 1
+								&& apathes.length == bpathes.length) {
+							// path depth 0 should be eaqual
+							if (apathes[0].equals(bpathes[0])) {
+								// path depthes [1,n-1] should be equal ignore
+								// numbers
+								boolean ok = true;
+								for (int i = 1; i < apathes.length - 1; i++) {
+									if (!apathes[i].replaceAll("\\d", "")
+											.equals(bpathes[i].replaceAll(
+													"\\d", "")))
+										ok = false;
+								}
+								if (ok) {
+									// last path depth should be similar in
+									// structure
+									if (simInStructure(
+											apathes[apathes.length - 1],
+											bpathes[bpathes.length - 1]))
+										return 1d;
+								}
 							}
 						}
 					}
@@ -96,11 +153,15 @@ public class UrlSim {
 	 * 
 	 * 峨眉山-1002.html vs content-1231.html 不相似
 	 * 
-	 * doc_4_60761.html vs doc_2_702_60714.html 不相似
+	 * doc_60761.html vs doc_2_60714.html 不相似
 	 * 
 	 */
 	private static boolean simInStructure(String a, String b) {
-		// 判断后缀名
+		// if a equals b, OK
+		if (a.equals(b))
+			return true;
+
+		// extension should be the same
 		int aExtIdx = a.lastIndexOf('.'), bExtIdx = b.lastIndexOf('.');
 		if (aExtIdx > 0 && bExtIdx > 0) {
 			// extension should be the same
@@ -114,6 +175,10 @@ public class UrlSim {
 			return false;
 		}
 
+		// a,b should have same length
+		if (a.length() != b.length())
+			return false;
+
 		// a,b should contain same gradients
 		short[] aIngredient = parseIngredient(a);
 		short[] bIngredient = parseIngredient(b);
@@ -126,6 +191,10 @@ public class UrlSim {
 
 		// a,b should have similar seperators
 		if (aIngredient[4] != aIngredient[4])
+			return false;
+
+		// a,b 如果只有字母，且长度小于8，过滤掉
+		if (aIngredient[0] == a.length() && a.length() < 8)
 			return false;
 
 		return true;

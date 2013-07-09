@@ -17,6 +17,11 @@
 
 package edu.uci.ics.crawler4j.snapshot;
 
+/**
+ * Not in use
+ * @author WangFengwei
+ *
+ */
 public class CrawlStat {
 	private int totalProcessedPages;
 	private long totalLinks;
