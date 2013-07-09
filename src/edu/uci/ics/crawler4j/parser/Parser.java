@@ -55,6 +55,9 @@ public class Parser extends Configurable {
 	}
 
 	public boolean parse(Page page, String contextURL) {
+		if(page.getContentType()==null){
+			page.setContentType(Util.guessContentTypeByUrl(page.getWebURL().getURL()));
+		}
 
 		if (Util.hasBinaryContent(page.getContentType())) {
 			/* image audio video application */
@@ -109,6 +112,7 @@ public class Parser extends Configurable {
 				TextParseData parseData = new TextParseData();
 				String charset = page.getContentCharset();
 				if (null == charset) {
+					// TODO parse char set
 					charset = "gb2312";
 				}
 				parseData.setTextContent(new String(page.getContentData(),

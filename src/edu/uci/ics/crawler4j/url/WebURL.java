@@ -49,7 +49,7 @@ public class WebURL implements Serializable {
 	private String fullDomainAndPort;
 
 	public String getFullDomainAndPort() {
-		return fullDomainAndPort;
+		return fullDomainAndPort.replace(":", "_MH_");
 	}
 
 	public WebURL(String url) {
